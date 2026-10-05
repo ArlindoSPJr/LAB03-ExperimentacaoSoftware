@@ -8,9 +8,9 @@ Ainda **não há código**: o repositório contém apenas o enunciado em `enunci
 
 Projeto: Lab03 de Laboratório de Experimentação de Software (Engenharia de Software). Pipeline que **minera métricas DORA** de repositórios open-source do GitHub (que usam GitHub Actions) e gera um artigo (template SBC, ≤ 10 páginas). Trabalho em trio, dividido em sprints S01 (100 repos), S02 (≥ 300 repos + validação manual), S03 (análise estatística RQ01–07) e entrega final (replicação cruzada).
 
-**Antes de implementar qualquer tarefa, leia `docs/superpowers/plans/2026-10-05-lab03-dora-pipeline.md`**: ele define a ordem das tarefas, os donos de cada arquivo (integrantes A/B/C), os contratos entre módulos e as regras de colaboração.
-
-O backlog de Issues por sprint, integrante (A/B/C) e onda está em `docs/ISSUES.md`; ao implementar uma tarefa, siga o ID e as dependências ("Depende de") da Issue correspondente.
+**Antes de implementar qualquer tarefa, leia:**
+- `docs/ISSUES.md`: fonte de verdade de **donos (A/B/C), ondas, dependências, escopo das Issues e decisões em aberto**. Siga o ID e o "Depende de" da Issue correspondente.
+- `docs/superpowers/plans/2026-10-05-lab03-dora-pipeline.md`: contratos entre módulos, restrições globais, regras de colaboração e detalhes técnicos das tarefas da S01.
 
 ## Restrições obrigatórias
 

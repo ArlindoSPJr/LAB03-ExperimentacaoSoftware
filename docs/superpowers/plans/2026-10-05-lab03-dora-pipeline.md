@@ -6,18 +6,20 @@
 
 **Architecture:** Pacote Python com um módulo por responsabilidade. `pipeline/` faz E/S (HTTP, cache, coleta); `metricas/` contém funções **puras** (sem rede) testadas com fixtures; `pipeline/__main__.py` apenas encadeia: seleção → metadados → releases/commits → runs → métricas → CSV + funil. Cada integrante é dono de arquivos distintos.
 
-**Tech Stack:** Python 3.12, `requests`, `pyyaml`, `pandas`, `scipy`, `statsmodels`, `scikit-learn`, `pytest`, `pytest-cov`. **Proibido** PyGithub ou qualquer lib que consulte a API do GitHub.
+**Tech Stack:** Python 3.12, `requests`, `pyyaml`, `pandas`, `scipy`, `statsmodels`, `scikit-learn`, `matplotlib`, `pymannkendall`, `pytest`, `pytest-cov` (versões fixadas em `requirements.txt` desde a S01). **Proibido** PyGithub ou qualquer lib que consulte a API do GitHub.
 
 **Spec:** `enunciado/03 - Mineração de Métricas DORA.md` (fonte de verdade; em caso de dúvida, ele vence este plano).
 
+**Donos, ordem, escopo das Issues e decisões em aberto:** `docs/ISSUES.md` (fonte de verdade para isso; este plano traz contratos, restrições e detalhes técnicos das tarefas da S01).
+
 ## Global Constraints
 - Token apenas em `GITHUB_TOKEN` (env); nunca commitado. Comando único: `python -m pipeline --config config.yaml`.
-- Janela de observação: 12 meses, datas em `config.yaml` (`window.start`, `window.end`), fixadas pelo professor na abertura da S01.
+- Janela de observação: 12 meses, datas em `config.yaml` (`window.start`, `window.end`, com `window.end` no passado), fixadas pelo professor na abertura da S01. `config.yaml` aceita `repos: [...]` opcional (lista fixa, pula a busca).
 - Só default branch; deploy = release com `draft=false`; data do commit = `commit.author.date`; CI = só runs com `event=push`.
 - `conclusion`: `success` → sucesso; `failure|timed_out|startup_failure` → falha; `cancelled|skipped|neutral|action_required|stale|vazio` → **ignorar**.
 - Inclusão: ≥ 5 releases e ≥ 50 runs válidos na janela; descartes entram no funil.
 - Censura: contar e reportar, nunca descartar. Estatística: sempre **mediana e IQR**.
-- Cache em disco com retomada; rate limit (`X-RateLimit-Remaining/Reset`) com espera; 5xx com backoff exponencial 1,2,4,8s; paginação via `Link rel="next"`.
+- Cache em disco com retomada; rate limit (`X-RateLimit-Remaining/Reset`) com espera; limite secundário (403/429 + `Retry-After`); 5xx com backoff exponencial 1,2,4,8s; paginação via `Link rel="next"`.
 - Cobertura ≥ 80% do módulo `metricas` (`pytest --cov=metricas --cov-fail-under=80`).
 - Todo commit referencia a Issue (`#N`). Mensagem: `feat(modulo): descrição (#N)`.
 - Datas internas: `datetime` timezone-aware UTC. Tempos: lead time em **dias**, recuperação em **horas**, CFR em fração 0–1.
@@ -45,7 +47,8 @@ class GitHubClient:
     def paginate(self, path: str, params: dict | None = None, item_key: str | None = None) -> list: ...
 
 # Registros (dicts) trocados entre módulos
-Release = {"tag_name": str, "published_at": datetime, "prerelease": bool}
+Release = {"tag_name": str, "published_at": datetime, "prerelease": bool, "body": str | None}
+Commit  = {"sha": str, "author_date": datetime, "message": str}
 Run     = {"workflow_id": int, "conclusion": str | None, "run_started_at": datetime, "updated_at": datetime}
 RepoMeta= {"full_name": str, "stars": int, "language": str | None, "contributors": int,
            "created_at": datetime, "default_branch": str}
@@ -62,6 +65,9 @@ Mapa da S01: Onda 1 (A) = T0, T1, T5, T4 · Onda 2 (B) = T6, T2, T7 · Onda 3 (C
 - Runs `cancelled`/`skipped`/vazias → ignoradas em CFR e recuperação.
 - Repositório com 1 release / 0 runs → métricas `None`, sem divisão por zero.
 - `compare` retornando 404 (tag apagada) → registrar e contar; mês de runs com 1000 resultados (teto) → sinalizar.
+- Release anterior à janela e pré-releases **não** contam na frequência (servem só de base para o `compare` / variantes).
+- Falhas antes do primeiro sucesso da janela não abrem episódio de recuperação (contadas em `n_falhas_iniciais`).
+- Lead time negativo (rebase/squash) → descartado e contado em `n_lead_negativos`.
 
 ---
 
@@ -70,10 +76,10 @@ Mapa da S01: Onda 1 (A) = T0, T1, T5, T4 · Onda 2 (B) = T6, T2, T7 · Onda 3 (C
 ### Task 0: Scaffold e CI (ver ISSUES.md)
 **Files:** Create `requirements.txt`, `config.yaml`, `.gitignore`, `.github/workflows/testes.yml`, `pipeline/__init__.py`, `metricas/__init__.py`, `tests/__init__.py`, `tests/test_smoke.py`
 **Produces:** repositório que roda `pytest` verde no GitHub Actions.
-- [ ] Criar `requirements.txt` (`requests`, `pyyaml`, `pandas`, `scipy`, `statsmodels`, `scikit-learn`, `pytest`, `pytest-cov`) e `.gitignore` (`cache/`, `data/raw/`, `.env`, `__pycache__/`).
+- [ ] Criar `requirements.txt` com versões fixadas (`requests`, `pyyaml`, `pandas`, `scipy`, `statsmodels`, `scikit-learn`, `matplotlib`, `pymannkendall`, `pytest`, `pytest-cov`) e `.gitignore` (`cache/`, `data/raw/`, `.env`, `__pycache__/`).
 - [ ] `config.yaml`: `window: {start: "2025-10-01", end: "2026-09-30"}` (placeholder: substituir pelas datas do professor), `sample_size: 100`, `star_ranges: [[1000,2000],[2000,5000],[5000,20000],[20000,500000]]`, `cache_dir: cache`.
 - [ ] `tests/test_smoke.py`: `def test_imports(): import pipeline, metricas`.
-- [ ] Criar `.github/workflows/testes.yml` com o modelo do enunciado (checkout, setup-python 3.12, `pip install -r requirements.txt`, `pytest --cov=metricas --cov-fail-under=80`). Obs.: a cobertura só passa de verdade após T2–T4; até lá usar `--cov-fail-under=0` e restaurar 80 no PR de T4.
+- [ ] Criar `.github/workflows/testes.yml` com o modelo do enunciado (checkout, setup-python 3.12, `pip install -r requirements.txt`, `pytest --cov=metricas --cov-fail-under=80`). Obs.: até existirem as métricas, usar `--cov-fail-under=0`; a volta para 80 é a Issue `S01-O3.5`.
 - [ ] Run: `pytest -v` → PASS. Commit: `chore: scaffold e CI (#N)`.
 
 ### Task 1: Cache e cliente HTTP (ver ISSUES.md) — **bloqueia T5, T6, T7**
@@ -81,11 +87,11 @@ Mapa da S01: Onda 1 (A) = T0, T1, T5, T4 · Onda 2 (B) = T6, T2, T7 · Onda 3 (C
 **Produces:** `DiskCache`, `GitHubClient`, `NotFoundError` conforme contratos.
 - [ ] Teste: cache hit não chama a rede; `set`/`get` persistem em arquivo (JSON, nome = sha1 da chave).
 - [ ] Teste: resposta 5xx é repetida com esperas 1,2,4 (injetar `sleep` falso e verificar a lista de esperas); após `max_retries` levanta erro.
-- [ ] Teste: `X-RateLimit-Remaining: 0` + `X-RateLimit-Reset` futuro → chama `sleep` com a diferença; 404 → `NotFoundError`.
+- [ ] Teste: `X-RateLimit-Remaining: 0` + `X-RateLimit-Reset` futuro → chama `sleep` com a diferença; 403/429 com `Retry-After` → espera e repete; 404 → `NotFoundError`; respostas de erro não entram no cache.
 - [ ] Teste: `paginate` segue `Link rel="next"` até o fim e concatena (use `item_key` para endpoints que embrulham em `{"total_count":..,"workflow_runs":[..]}`).
 - [ ] Implementar com `requests.Session`, header `Authorization: Bearer $GITHUB_TOKEN`, chave de cache = `url+params ordenados`. Testar com `requests` mockado manualmente (classe fake de sessão), sem rede.
 - [ ] Run: `pytest tests/test_http.py -v` → PASS. Commit: `feat(http): cliente com cache, rate limit e backoff (#N)`.
-- Entrega rápida: se demorar, publicar primeiro só `get`/`paginate` sem rate limit para destravar A e B.
+- Entrega rápida: se demorar, publicar primeiro só `get`/`paginate` sem rate limit para destravar a Onda 2.
 
 ### Task 2: Lead time (ver ISSUES.md)
 **Files:** Create `metricas/lead_time.py`; Test `tests/test_lead_time.py`
@@ -123,18 +129,20 @@ def score_lead_time(days: float) -> int          # <1:4, <7:3, <30:2, senão 1
 def score_cfr(rate: float) -> int                # <=.15:4, <=.30:3, <=.45:2, senão 1
 def score_recovery(hours: float) -> int          # <1:4, <24:3, <168:2, senão 1
 def overall(scores: list[int]) -> str            # mediana arredondada p/ baixo -> "Elite|High|Medium|Low"
+def classificar_repositorio(deploy_freq_week, lead_time_a_days, cfr_ci, recovery_median_h) -> dict
+    # chaves score_freq, score_lead, score_cfr, score_rec, dora_overall; qualquer métrica None -> tudo None
 ```
 - [ ] Testes nos limites de cada faixa (6,99 vs 7 por semana; 0,15 vs 0,1501; 24h exatas) e `overall([4,3,3,1]) == "High"`, `overall([4,4,1,1]) == "Medium"` (mediana 2,5 → 2).
-- [ ] Implementar e rodar. **Restaurar `--cov-fail-under=80` no CI neste PR.** Commit: `feat(metricas): classificação DORA (#N)`.
+- [ ] Teste de `classificar_repositorio` com métrica `None`. Implementar e rodar. Commit: `feat(metricas): classificação DORA (#N)`.
 
 ### Task 5: Seleção, funil e metadados (ver ISSUES.md) — depende de T1
-**Files:** Create `pipeline/selecao.py`, `pipeline/metadados.py`; Test `tests/test_selecao.py`
+**Files:** Create `pipeline/selecao.py`, `pipeline/metadados.py`, `pipeline/funil.py`; Test `tests/test_selecao.py`, `tests/test_metadados.py`
 **Produces:**
 ```python
-def search_candidates(client, star_ranges: list[list[int]], per_range_limit: int = 1000) -> list[str]  # full_names únicos
+def search_candidates(client, star_ranges: list[list[int]], per_range_limit: int = 1000) -> list[str]  # full_names únicos, fork:false archived:false, embaralhados com random_state=42
 def uses_actions(client, full_name: str) -> bool                       # total_count > 0
 def collect_metadata(client, full_name: str) -> RepoMeta
-class Funnel:  # add(stage: str, remaining: int, reason: str = ""); to_dataframe() -> DataFrame
+class Funnel:  # em pipeline/funil.py; add(stage: str, remaining: int, reason: str = ""); to_dataframe() -> DataFrame
 ```
 - [ ] Testes com cliente fake: faixas de estrelas fatiam a busca (`stars:1000..2000`), duplicatas removidas; `total_count=0` → `False`; contributors lido do `Link` last page (`per_page=1&anon=true`); `Funnel.to_dataframe()` tem colunas `etapa,restantes,descartados,motivo`.
 - [ ] Implementar e rodar. Commit: `feat(selecao): candidatos, filtro Actions, metadados e funil (#N)`.
@@ -143,10 +151,10 @@ class Funnel:  # add(stage: str, remaining: int, reason: str = ""); to_dataframe
 **Files:** Create `pipeline/releases.py`; Test `tests/test_releases.py`
 **Produces:**
 ```python
-def fetch_releases(client, full_name: str, start: datetime, end: datetime) -> list[Release]   # draft=False, ordenadas por data; inclui a imediatamente anterior à janela como `previous` via fetch_all_releases
-def fetch_commit_dates(client, full_name: str, base_tag: str, head_tag: str) -> list[datetime] | None   # None se 404 (registrar), usa per_page/page e author.date
+def fetch_releases(client, full_name: str, start: datetime, end: datetime) -> list[Release]   # draft=False, ordenadas por published_at; inclui a release não-pré-release imediatamente anterior à janela (base do compare)
+def fetch_commits(client, full_name: str, base_tag: str, head_tag: str) -> list[Commit] | None   # None se 404 (registrar); paginado; author.date + message
 ```
-- [ ] Testes: draft descartado; pré-releases mantidas com `prerelease=True` (para RQ07); 404 do compare → `None`; paginação do compare >250 commits concatena páginas.
+- [ ] Testes: draft descartado; pré-releases mantidas com `prerelease=True` (para RQ07); 404 do compare → `None`; paginação do compare >250 commits concatena páginas; mensagens de commit presentes; repo com uma única release.
 - [ ] Implementar e rodar. Commit: `feat(releases): coleta de releases e commits (#N)`.
 
 ### Task 7: Workflow runs por mês (ver ISSUES.md) — depende de T1
@@ -158,29 +166,25 @@ def fetch_commit_dates(client, full_name: str, base_tag: str, head_tag: str) -> 
 ### Task 8: Orquestração, funil e CSV (ver ISSUES.md: Onda 3 da S01)
 **Files:** Create `pipeline/__main__.py`, `pipeline/orquestrador.py`; Test `tests/test_orquestrador.py`
 - [ ] Teste de integração com cliente fake: 3 repos (1 sem Actions, 1 com <5 releases, 1 válido) → funil com 3 linhas coerentes e CSV com 1 linha.
-- [ ] Implementar: lê `config.yaml`, cria `DiskCache`/`GitHubClient`, executa seleção → filtro Actions → metadados → releases → runs → critério (≥5 releases, ≥50 runs válidos) → métricas → grava `data/funil.csv` e `data/metricas.csv` (colunas: `repo, stars, language, contributors, age_days, n_releases, deploy_freq_week, lead_time_a_days, lead_time_b_days, cfr_ci, recovery_median_h, n_episodes, n_censored, compare_404, dora_overall`).
+- [ ] Implementar: lê `config.yaml` (com `repos` opcional, que pula a busca), cria `DiskCache`/`GitHubClient`, executa seleção → filtro Actions → metadados → releases → runs → critério (≥5 releases, ≥50 runs válidos) → métricas → grava `data/funil.csv` e `data/metricas.csv` (colunas: `repo, stars, language, contributors, age_days, n_releases, deploy_freq_week, lead_time_a_days, lead_time_b_days, cfr_ci, recovery_median_h, n_episodes, n_censored, n_falhas_iniciais, n_lead_negativos, compare_404, score_freq, score_lead, score_cfr, score_rec, dora_overall`; repositório com alguma métrica `None` fica com notas e `dora_overall` vazios).
 - [ ] Reexecutar o comando duas vezes: a segunda deve ser quase instantânea (cache). Commit: `feat(pipeline): orquestração, funil e CSV (#N)`.
 
 ### Task 9: README e introdução do artigo (os três)
 **Files:** Create `README.md`, `artigo/introducao.md`
 - [ ] README: pré-requisitos, `export GITHUB_TOKEN=...`, `pip install -r requirements.txt`, `python -m pipeline --config config.yaml`, como rodar testes/cobertura, onde ficam saídas. (Outro grupo vai replicar só com isso.)
-- [ ] Introdução: uma hipótese informal por RQ01–RQ07 (o que esperamos e por quê), **escrita antes de olhar os dados**; cada integrante escreve e commita as hipóteses de algumas RQs.
+- [ ] Introdução no **template SBC (Overleaf)**: uma hipótese informal por RQ01–RQ07 (e RQ08, se houver bônus), **escrita antes de olhar os dados**; divisão em `docs/ISSUES.md` (S01-D1 a D3).
 - [ ] Commit: `docs: README e hipóteses (#N)`.
 
-### Onda 4: Execução real (os três)
-- [ ] `sample_size: 100`, token real, rodar em 5 repos → inspecionar CSV manualmente em 2 deles contra a página do GitHub → rodar nos 100 (deixar rodando em segundo plano; reexecutar se interromper).
-- [ ] Checklist de entrega S01: funil gerado; testes verdes no CI; cobertura ≥ 80%; cada integrante com commits atribuídos a Issues; hipóteses no artigo.
+### Execução real e conferência
+Ver `S01-O3.6` e o portão `S01-G` em `docs/ISSUES.md`.
 
 ---
 
-# Roteiro das próximas sprints (detalhar em novo plano ao abrir cada sprint)
-
-**S02 (5 pts):** (1) Coleta completa ≥ 300 repos – C. (2) Gerar planilhas de rotulagem (60 repos com `random_state=42`, 5 releases por repo, link direto da release) – A. (3) Os 3 rotulam independente, cada um commita `rotulos/<nome>.csv` – todos. (4) Fleiss + consenso + protocolo de desempate – A. (5) Heurística de release corretiva + P/R/F1 vs consenso, iterar até F1 ≥ 0,70 e documentar versões – B. (6) CFR(b), lead time/variantes de tags e pré-releases, dataset final + `data/DICIONARIO.md` – C. (7) Seção de Metodologia – todos. Ordem: 1 → 2 → 3 → (4,5 em paralelo) → 6 → 7.
-**S03 (5 pts):** só lê o CSV. A: RQ01–04 + classificação C1; B: RQ05 (Spearman) e RQ06 (KW/MW, Holm, ε²/Cliff's δ); C: RQ07 (≥3 combinações, kappa linear) e opcional RQ08. Um notebook/script por análise em `analise/`. Artigo: Resultados e Discussão.
-**Final (5 pts):** A executa pipeline do outro grupo (30 repos, só README); B compara com CSV original e abre Issues com evidências; C responde Issues recebidas e adiciona ao Projects; os três escrevem Ameaças à validade e Replicação cruzada.
+# Próximas sprints
+S02, S03 e Entrega Final estão detalhadas (donos por onda, dependências, arquivos) em **`docs/ISSUES.md`**. Detalhar um plano técnico como este ao abrir cada sprint.
 
 ## Self-Review
-- Cobertura da spec: seleção/funil (T5, T8), releases/commits/runs (T6, T7), cache/rate limit (T1), lead time (T2), CFR(a)/recuperação (T3), classificação (T4), CI (T0), hipóteses (T9). CFR(b), heurística, validação manual, RQ05–RQ08, replicação: roteiro S02/S03/Final.
+- Cobertura da spec: seleção/funil (T5, T8), releases/commits/runs (T6, T7), cache/rate limit (T1), lead time (T2), CFR(a)/recuperação (T3), classificação (T4), CI (T0), hipóteses (T9). CFR(b), heurística, validação manual, variantes da RQ07, RQ05–RQ08, replicação: `docs/ISSUES.md`.
 - Gap conhecido: datas da janela dependem do professor (T0 usa placeholder).
 - Consistência de nomes: `Release/Run/RepoMeta`, `GitHubClient.get/paginate`, `fetch_*` usados igualmente nos contratos e tarefas.
 

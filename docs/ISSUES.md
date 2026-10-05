@@ -24,7 +24,16 @@
 - **Branch:** `feat/N-slug`; 1 Issue = 1 branch = 1 PR curto. Assignee obrigatório; WIP máx. 1–2 por pessoa.
 - **Labels:** `sprint-01…`, `onda-1…3`, `owner-A|B|C`, `tipo:codigo|dados|docs`. **Milestones:** Lab03S01, Lab03S02, Lab03S03, Entrega Final.
 - **DoD de toda Issue de código:** testes passando no CI; cobertura de `metricas` ≥ 80%; PR aprovado por outro integrante; sem token, `cache/` ou dados brutos commitados.
-- Assinaturas e fórmulas: ver plano `docs/superpowers/plans/2026-10-05-lab03-dora-pipeline.md` (Tasks T0–T9) e `CLAUDE.md`.
+- Assinaturas e fórmulas: ver plano `docs/superpowers/plans/2026-10-05-lab03-dora-pipeline.md` (Tasks T0–T9) e `CLAUDE.md`. **Donos, ordem e escopo das Issues: este arquivo é a fonte de verdade.**
+- **GitHub Projects semanal (desconto de até 10%):** todo integrante atualiza seus cartões **pelo menos 1× por semana**, inclusive quando não é a sua onda (docs livres e revisões também ficam no board, com Assignee). Cartões refletem o estado real; WIP respeitado.
+- **Artigo:** escrito direto no **template SBC (Overleaf)** desde a S01; cada sprint entrega a sua seção revisada nele. Arquivos `artigo/*.md` só como rascunho, se o grupo quiser.
+
+## Decisões a confirmar com o grupo (o enunciado não define; registrar na Metodologia)
+1. **Métrica ausente:** repositório com alguma métrica `None` não é classificado (ver `S01-O1.5`).
+2. **Amostragem:** busca com `fork:false archived:false`; candidatos embaralhados com `random_state=42` e processados em ordem até atingir N válidos (100 na S01, ≥ 300 na S02).
+3. **Episódio de recuperação:** só começa na primeira falha **após um sucesso** (literal do enunciado). Falhas antes do primeiro sucesso da janela não abrem episódio e são contadas em `n_falhas_iniciais`. `n_episodes` inclui os censurados; `prop_censurados = n_censored / n_episodes`.
+4. **Lead time negativo** (rebase/squash deixando `author.date` depois da release): valor descartado e contado em `n_lead_negativos`; citado em ameaças à validade.
+5. **Release anterior** (para o `compare`): a release não-draft e não-pré-release imediatamente anterior, mesmo fora da janela. Nas variantes da RQ07 é a unidade anterior do mesmo tipo (release+pré ou tag).
 
 ---
 
@@ -45,21 +54,28 @@ Ordem interna: O1.1 → O1.2 → (O1.3, O1.4, O1.5 em qualquer ordem). **O1.2 é
 
 ### S01-O1.1 — Scaffold e CI `tipo:codigo`
 - Arquivos: `requirements.txt`, `config.yaml` (janela placeholder até o professor fixar), `.gitignore` (`cache/`, `data/raw/`, `.env`), `.github/workflows/testes.yml`, `pipeline/__init__.py`, `metricas/__init__.py`, `tests/test_smoke.py`.
+- `requirements.txt` com **versões fixadas** (`pacote==x.y.z`) desde já: `requests`, `pyyaml`, `pandas`, `scipy`, `statsmodels`, `scikit-learn`, `matplotlib`, `pymannkendall`, `pytest`, `pytest-cov`.
+- `config.yaml`: `window.end` precisa estar **no passado** (senão o cache guarda dados incompletos); deixar comentário dizendo isso.
 - Entrega: `pytest` verde no GitHub Actions. CI com `--cov-fail-under=0` até `S01-O3.5` subir para 80.
 - Commit: `chore: scaffold e CI (#N)`.
 ### S01-O1.2 — Cache em disco e cliente HTTP `tipo:codigo`
 - Depende de: O1.1. Arquivos: `pipeline/cache.py`, `pipeline/http.py`, `tests/test_http.py`.
 - Entrega: `DiskCache`, `GitHubClient.get/paginate`, `NotFoundError`; 5xx com backoff 1,2,4,8s; espera por `X-RateLimit-Remaining/Reset`; paginação por `Link`; cache hit sem rede; testes com sessão fake.
+- Também tratar **limite secundário**: resposta 403 ou 429 com `Retry-After` → esperar o tempo indicado e repetir (a Search API tem limite próprio, ~30 req/min). `GET /rate_limit` pode ser consultado sem gastar cota. Respostas de erro **não** vão para o cache.
 - Commit: `feat(http): cliente com cache, rate limit e backoff (#N)`.
 ### S01-O1.3 — Seleção de candidatos e filtro de Actions `tipo:codigo`
 - Depende de: O1.2. Arquivos: `pipeline/selecao.py`, `tests/test_selecao.py`.
-- Entrega: `search_candidates` (faixas de estrelas, sem duplicatas, respeitando 1.000/consulta) e `uses_actions` (`total_count > 0`).
+- Entrega: `search_candidates` (faixas de estrelas, sem duplicatas, respeitando 1.000/consulta, query com `fork:false archived:false`) e `uses_actions` (`total_count > 0`).
+- A lista de candidatos sai **embaralhada com `random_state=42`** (decisão 2), para a amostra ser reproduzível e não enviesada para os mais populares.
 ### S01-O1.4 — Metadados e funil de seleção `tipo:codigo`
 - Depende de: O1.2. Arquivos: `pipeline/metadados.py`, `pipeline/funil.py`, `tests/test_metadados.py`.
 - Entrega: `collect_metadata` (estrelas, linguagem, contributors via `Link` com `per_page=1&anon=true`, `created_at`, `default_branch`); `Funnel.add/to_dataframe` com `etapa,restantes,descartados,motivo`.
 ### S01-O1.5 — Classificação DORA `tipo:codigo`
 - Depende de: O1.1. Arquivos: `metricas/classificacao.py`, `tests/test_classificacao.py`.
 - Entrega: `score_deploy_freq`, `score_lead_time`, `score_cfr`, `score_recovery`, `overall`; testes nos limites das faixas; `overall([4,3,3,1])=="High"`.
+- Mais `classificar_repositorio(deploy_freq_week, lead_time_a_days, cfr_ci, recovery_median_h) -> dict` com as chaves `score_freq`, `score_lead`, `score_cfr`, `score_rec`, `dora_overall`. É a função que o orquestrador (`S01-O3.4`) chama uma vez por repositório. Usa as variantes de referência C1 (lead time (a) e CFR (a)).
+- **Regra para métrica ausente (`None`):** se qualquer uma das 4 métricas for `None` (ex.: repositório sem runs válidos), o repositório **não é classificado**: as 5 chaves voltam `None` e o repositório continua no CSV. Testar esse caso. (Decisão a confirmar com o grupo: o enunciado não cobre métrica ausente; se mudar, atualizar aqui, no dicionário de dados e em `S03-O1.3`.)
+- Esta função **não lê nem grava arquivo**: só recebe números e devolve notas. Quem grava `data/metricas.csv` é o orquestrador.
 - **Fechamento da onda:** nota de passagem com a assinatura real de `GitHubClient`.
 
 ## Onda 2 — Coleta de entrega · dono: **B** (começa quando a Onda 1 fecha)
@@ -67,18 +83,21 @@ Ordem interna: O2.1 → O2.2 → O2.3 → O2.4 → O2.5.
 
 ### S01-O2.1 — Coleta de releases `tipo:codigo`
 - Arquivos: `pipeline/releases.py` (`fetch_releases`), `tests/test_releases.py`.
-- Entrega: `draft=false`, ordenadas; pré-releases mantidas (`prerelease=True`, usadas na RQ07); inclui a release imediatamente anterior à janela; paginação.
+- Entrega: `draft=false`, ordenadas por `published_at`; pré-releases mantidas (`prerelease=True`, usadas na RQ07); inclui a release anterior à janela (decisão 5); guardar também `body` (release notes), útil na rotulagem; paginação.
 ### S01-O2.2 — Commits entre releases `tipo:codigo`
-- Arquivos: `pipeline/releases.py` (`fetch_commit_dates`), testes.
-- Entrega: `compare/{base}...{head}` paginado (`per_page/page`), datas `author.date`; 404 → `None` com registro/contagem; primeira release da história ignorada.
+- Arquivos: `pipeline/releases.py` (`fetch_commits`), testes.
+- Entrega: `fetch_commits(client, full_name, base_tag, head_tag) -> list[{"sha", "author_date", "message"}] | None`. Usa `compare/{base}...{head}` paginado (`per_page/page`). **A mensagem é obrigatória**: a heurística de release corretiva da S02 depende dela.
+- 404 → `None`, com registro e contagem. Primeira release da história é ignorada.
+- Testes: compare com mais de 250 commits (várias páginas), 404, repositório com uma única release.
 ### S01-O2.3 — Lead time (a) e (b) `tipo:codigo`
 - Arquivos: `metricas/lead_time.py`, `tests/test_lead_time.py`.
-- Entrega: `lead_time_release_days`, `lead_time_commits_days`, `repo_lead_time_a`, `repo_lead_time_b`; teste do enunciado (v1.1 → 13 dias; [13,5,1]); lista vazia → `None`; release sem commits novos.
+- Entrega: `lead_time_release_days`, `lead_time_commits_days`, `repo_lead_time_a`, `repo_lead_time_b`; teste do enunciado (v1.1 → 13 dias; [13,5,1]); lista vazia → `None`; release sem commits novos; valores **negativos descartados e contados** (decisão 4).
 ### S01-O2.4 — Coleta mensal de workflow runs `tipo:codigo`
 - Arquivos: `pipeline/runs.py` (`fetch_runs`), `tests/test_runs.py`.
 - Entrega: 12 consultas `branch=<default>&event=push&created=AAAA-MM-DD..AAAA-MM-DD`; meses com 1.000 resultados sinalizados; mapeamento para `Run`.
 ### S01-O2.5 — Etapa de releases para o orquestrador `tipo:codigo`
-- Arquivos: `pipeline/etapa_releases.py` (`coletar_releases_e_lead_time(client, meta, janela)` → `n_releases`, `deploy_freq_week`, `lead_time_a_days`, `lead_time_b_days`, `compare_404`), teste com cliente fake.
+- Arquivos: `pipeline/etapa_releases.py` (`coletar_releases_e_lead_time(client, meta, janela)` → `n_releases`, `deploy_freq_week`, `lead_time_a_days`, `lead_time_b_days`, `compare_404`, `n_lead_negativos`), teste com cliente fake.
+- **Regra de contagem:** `n_releases` e `deploy_freq_week` contam só releases **não-pré-release com `published_at` dentro da janela**. A release anterior à janela serve apenas de base para o `compare`. Testar isso explicitamente.
 - **Fechamento da onda:** nota de passagem com o formato real do retorno das etapas e dos `Run`.
 
 ## Onda 3 — Métricas de CI, integração e execução · dono: **C** (começa quando a Onda 2 fecha)
@@ -88,11 +107,14 @@ Ordem interna: O3.1 → O3.2 → O3.3 → O3.4 → O3.5 → O3.6.
 - Arquivos: `metricas/cfr.py`, `tests/test_cfr.py`. Entrega: `classify_conclusion`, `cfr_ci`; 3 sucessos + 1 falha = 0,25; `cancelled/skipped/None` ignorados; sem runs válidos → `None`.
 ### S01-O3.2 — Tempo de recuperação com censura `tipo:codigo`
 - Arquivos: `metricas/recuperacao.py`, `tests/test_recuperacao.py`. Entrega: `recovery_episodes`, `repo_recovery` (por workflow, depois mediana); tabela do enunciado → 1h20; falha nunca recuperada → censurada e contada; `cancelled` no meio não afeta.
+- Episódio só começa na primeira falha **após um sucesso** (decisão 3). Teste: falhas antes de qualquer sucesso não abrem episódio e entram em `n_falhas_iniciais`. `n_episodes` inclui os censurados.
 ### S01-O3.3 — Etapa de runs para o orquestrador `tipo:codigo`
-- Arquivos: `pipeline/etapa_runs.py` (`coletar_runs_e_metricas(client, meta, janela)` → `n_runs_validos`, `cfr_ci`, `recovery_median_h`, `n_episodes`, `n_censored`, `meses_no_teto`), teste com cliente fake.
+- Arquivos: `pipeline/etapa_runs.py` (`coletar_runs_e_metricas(client, meta, janela)` → `n_runs_validos`, `cfr_ci`, `recovery_median_h`, `n_episodes`, `n_censored`, `n_falhas_iniciais`, `meses_no_teto`), teste com cliente fake.
 ### S01-O3.4 — Orquestrador, funil e CSV `tipo:codigo`
 - Arquivos: `pipeline/__main__.py`, `pipeline/orquestrador.py`, `tests/test_orquestrador.py`.
-- Entrega: lê `config.yaml` → seleção → Actions → metadados → etapa de releases → etapa de runs → critério (≥5 releases e ≥50 runs válidos) → classificação → `data/funil.csv` e `data/metricas.csv` (colunas do plano T8). Teste com 3 repos fake (sem Actions / poucas releases / válido). `python -m pipeline --config config.yaml` roda do começo ao fim.
+- Entrega: lê `config.yaml` → seleção → Actions → metadados → etapa de releases → etapa de runs → critério (≥5 releases e ≥50 runs válidos) → `classificar_repositorio` (de `S01-O1.5`, uma chamada por repositório) → `data/funil.csv` e `data/metricas.csv`. O CSV tem **uma linha por repositório** com as colunas do plano T8 mais as notas por métrica: `score_freq, score_lead, score_cfr, score_rec` (antes de `dora_overall`). Repositório com métrica `None` entra no CSV com as notas e `dora_overall` vazios. Atualizar `data/DICIONARIO.md` com as colunas novas (incluindo `n_lead_negativos`, `n_falhas_iniciais`).
+- **Lista fixa de repositórios:** `config.yaml` aceita a chave opcional `repos: [owner/nome, ...]`. Se presente, a busca é pulada e o funil começa em "lista fornecida". É o que permite recoletar a mesma amostra na S02 e rodar a subamostra de 30 repos na replicação.
+- **Amostragem:** sem `repos`, processar candidatos na ordem embaralhada (decisão 2) até `sample_size` repositórios válidos. Teste com 3 repos fake (sem Actions / poucas releases / válido). `python -m pipeline --config config.yaml` roda do começo ao fim.
 ### S01-O3.5 — Restaurar cobertura 80% no CI `tipo:codigo`
 - Arquivo: `.github/workflows/testes.yml` (`--cov-fail-under=80`); completar testes de `metricas/` se faltar cobertura.
 ### S01-O3.6 — Execução real (5 → 100 repos) `tipo:dados`
@@ -101,7 +123,8 @@ Ordem interna: O3.1 → O3.2 → O3.3 → O3.4 → O3.5 → O3.6.
 ## Docs livres da S01 (não bloqueiam; feitas por quem está esperando)
 - **S01-D1 (B, durante a Onda 1):** hipóteses informais de RQ03 e RQ05 em `artigo/introducao.md`, **antes de ver dados**; `README.md` seção Saídas + `data/DICIONARIO.md` (versão inicial das colunas do plano T8).
 - **S01-D2 (C, durante a Onda 1):** hipóteses de RQ04 e RQ06 em `artigo/introducao.md`; seção Testes do `README.md` (rascunho).
-- **S01-D3 (A, durante a Onda 2):** hipóteses de RQ01, RQ02 e RQ07; seções Pré-requisitos, Token, Instalação e Comando único do `README.md`.
+- **S01-D3 (A, durante a Onda 2):** criar o projeto do artigo no **template SBC (Overleaf)** e convidar B e C; hipóteses de RQ01, RQ02, RQ07 (e RQ08, se o grupo for fazer o bônus); seções Pré-requisitos, Token, Instalação e Comando único do `README.md`.
+- As hipóteses de todos vão para a Introdução no Overleaf (o caminho `artigo/introducao.md` vale só como rascunho).
 - Revisão cruzada obrigatória de PRs também conta como tarefa de espera.
 
 ## Portão S01-G — Conferência (os três, curta, após a Onda 3)
@@ -132,7 +155,9 @@ Onda 3 (B)  Heurística e CFR(b): heurística v1 → avaliação F1 → refino �
 ### S02-O1.1 — Coleta completa ≥ 300 repos `tipo:codigo`
 - **Iniciar primeiro; roda em segundo plano horas.** Ajustes no pipeline (config para ≥ 300 válidos, `star_ranges` ampliadas), teste de retomada com `Ctrl+C`, `data/funil.csv` e `data/metricas.csv` com ≥ 300 repos. Correções em arquivos de A e B vão em PR pequeno avisando o autor original.
 ### S02-O1.2 — Variantes de deploy: tags e pré-releases `tipo:codigo`
-- Arquivos: `pipeline/tags.py` (`fetch_tags`, data = commit apontado), `metricas/variantes.py` (`deploy_freq(unidade)` com `release | release+pre | tag`), testes.
+- Arquivos: `pipeline/tags.py` (`fetch_tags`, data = commit apontado), `metricas/variantes.py`, testes.
+- Para cada unidade de deploy (`release | release+pre | tag`), calcular **frequência e lead time (b)**. O lead time usa os commits entre unidades consecutivas do mesmo tipo, via `fetch_commits` da S01. Essas são as entradas das combinações C2 e C3 da RQ07.
+- Colunas novas no CSV: `deploy_freq_week_pre`, `deploy_freq_week_tag`, `lead_time_b_days_pre`, `lead_time_b_days_tag`. O CFR(b) por unidade fica com `S02-O3.4`.
 ### S02-O1.3 — Consolidação do dataset e dicionário `tipo:codigo`
 - Arquivos: `pipeline/consolidar.py`, `data/DICIONARIO.md` (toda coluna: nome, tipo, unidade, fórmula/origem na API). `data/metricas.csv` com lead time a/b, CFR(a), recuperação, frequência por unidade.
 - **Fechamento:** nota de passagem com o caminho do dataset e a lista de repositórios elegíveis para o sorteio.
@@ -141,7 +166,7 @@ Onda 3 (B)  Heurística e CFR(b): heurística v1 → avaliação F1 → refino �
 ### S02-O2.1 — Funções de concordância e consenso `tipo:codigo`
 - Arquivos: `validacao/concordancia.py`, `tests/test_concordancia.py`. `fleiss_kappa_dimensao` (`aggregate_raters` + `fleiss_kappa`), `consenso` por maioria simples, 1-1-1 marcado para reunião; fixtures sintéticas (concordância perfeita → 1,0).
 ### S02-O2.2 — Gerador das planilhas de rotulagem `tipo:codigo`
-- Arquivo: `validacao/gerar_planilhas.py`. Sorteio de 60 repos com `df.sample(n=60, random_state=42)`, 5 releases sorteadas por repo, colunas: link direto da release, tipo do projeto, entregas reais (sim/não/incerto), corretiva (sim/não). **Sem** a saída da heurística. Gera 3 arquivos em branco.
+- Arquivo: `validacao/gerar_planilhas.py`. Sorteio de 60 repos com `df.sample(n=60, random_state=42)`, 5 releases sorteadas por repo (também com semente fixa e documentada), colunas: link direto da release, tipo do projeto, entregas reais (sim/não/incerto), corretiva (sim/não). **Sem** a saída da heurística. Gera 3 arquivos em branco.
 ### S02-O2.3 — Rotulagem independente (os três em paralelo) `tipo:dados`
 - **A:** `rotulos/A.csv` · **B:** `rotulos/B.csv` · **C:** `rotulos/C.csv`. Cada um na sua Issue, sem consultar os outros e sem ver a heurística. Os três commits ficam atribuídos às suas Issues.
 ### S02-O2.4 — Kappa de Fleiss, consenso e protocolo `tipo:codigo`
@@ -150,13 +175,14 @@ Onda 3 (B)  Heurística e CFR(b): heurística v1 → avaliação F1 → refino �
 
 ## Onda 3 — Heurística e CFR(b) · dono: **B**
 ### S02-O3.1 — Heurística de release corretiva v1 `tipo:codigo`
-- Arquivos: `metricas/corretiva.py`, `tests/test_corretiva.py`. `eh_corretiva(...)` (bump só de patch semver e/ou commits `revert|hotfix|fix`); `HEURISTICA_VERSAO`; `2.3.0→2.3.1` com `fix:` → sim; `2.4.0→2.5.0` → não.
+- Arquivos: `metricas/corretiva.py`, `tests/test_corretiva.py`. `eh_corretiva(...)` (bump só de patch semver e/ou commits `revert|hotfix|fix`, usando as mensagens de `fetch_commits` da S01); `HEURISTICA_VERSAO`; `2.3.0→2.3.1` com `fix:` → sim; `2.4.0→2.5.0` → não.
 ### S02-O3.2 — Avaliação contra o consenso `tipo:codigo`
 - Arquivo: `validacao/avaliar_heuristica.py`. Precisão, recall e F1 (`precision_recall_fscore_support`) por versão; tabela `docs/HEURISTICA_VERSOES.md` com cada versão e o F1.
 ### S02-O3.3 — Refino até F1 ≥ 0,70 `tipo:codigo`
 - Versões v2, v3… em `metricas/corretiva.py`, cada uma documentada. **Proibido** alterar o consenso para melhorar o F1.
 ### S02-O3.4 — CFR(b) `tipo:codigo`
 - Arquivo: `metricas/cfr.py` (`cfr_entrega(releases, janela_fim)`): release falha se seguida em ≤ 7 dias por corretiva; releases dos últimos 7 dias da janela ficam fora do denominador e contam como censuradas; testes de borda.
+- Calcular também com unidade `release+pre` (coluna `cfr_entrega_pre`), que é a entrada da combinação C2 da RQ07.
 ### S02-O3.5 — Dataset final `tipo:codigo`
 - Em `pipeline/consolidar.py` (PR avisando C): coluna `cfr_entrega`, `rework_rate` (para RQ08), `tipo_projeto` (do consenso, só nos 60 rotulados), regenerar `data/metricas.csv` e atualizar `data/DICIONARIO.md`.
 
@@ -191,7 +217,7 @@ Onda 3 (A)  Robustez: RQ07 (sensibilidade) → RQ08 opcional → preparar repo p
 ### S03-O1.2 — RQ01 a RQ04 `tipo:codigo`
 - Arquivo: `analise/rq01_rq04.py`. Mediana e IQR de frequência, lead time (a/b), CFR (a/b) e recuperação; proporção de censurados; tabelas e gráficos em `analise/saida/`.
 ### S03-O1.3 — Classificação DORA de referência (C1) `tipo:codigo`
-- Arquivo: `analise/classificacao_c1.py` (usa `metricas/classificacao.py`): categoria por métrica e geral; distribuição Elite/High/Medium/Low. C1 = release / lead time (a) / CFR (a); grava `analise/saida/classificacao_c1.csv` para a RQ07.
+- Arquivo: `analise/classificacao_c1.py`: lê `score_*` e `dora_overall`, que já estão no CSV desde a S01 (sem reclassificar); categoria por métrica e geral; distribuição Elite/High/Medium/Low. C1 = release / lead time (a) / CFR (a); grava `analise/saida/classificacao_c1.csv` para a RQ07.
 - **Fechamento:** nota de passagem com os nomes das colunas e dos utilitários.
 
 ## Onda 2 — Relações · dono: **C**
@@ -199,6 +225,8 @@ Onda 3 (A)  Robustez: RQ07 (sensibilidade) → RQ08 opcional → preparar repo p
 - Arquivo: `analise/rq05.py`. `spearmanr` entre frequência e CFR (a) e (b): ρ, p, n; dispersão com eixo log quando preciso.
 ### S03-O2.2 — RQ06: fatores, testes, Holm e tamanho de efeito `tipo:codigo`
 - Arquivo: `analise/rq06.py`. ≥ 3 fatores (linguagem, estrelas, contribuidores, idade em quartis; tipo de projeto); Kruskal-Wallis (ε² = H/(n−1)) ou Mann-Whitney (Cliff's δ = 2·U₁/(n₁·n₂) − 1); `multipletests(method='holm')`; tabela com p ajustado e efeito.
+- Ter **≥ 3 fatores além do tipo de projeto**. O tipo só existe para os 60 repos rotulados: esse fator roda com n=60, e isso precisa ser dito no artigo.
+- Linguagens com poucos repositórios são agrupadas em "Outras" (definir o corte, ex.: < 10 repos).
 - **Fechamento:** nota de passagem.
 
 ## Onda 3 — Robustez · dono: **A**
@@ -248,7 +276,7 @@ Pré-requisito: `S03-O3.3` concluída antes de outro grupo nos replicar.
 ### F-O3.1 — Tratar Issues recebidas `tipo:codigo`
 - Para cada Issue do grupo replicador: corrigir o pipeline (commits citando a Issue) ou justificar por escrito; adicionar todas ao GitHub Projects.
 ### F-O3.2 — Revisão final do artigo `tipo:docs`
-- Consolidar no template SBC (≤ 10 páginas), com link do repositório/Projects.
+- Revisar o artigo no template SBC (≤ 10 páginas), que já vem sendo escrito no Overleaf desde a S01, e incluir o link do repositório/Projects.
 
 ## Docs livres da Entrega Final
 - **F-D1 (A, durante a Onda 2):** Ameaças à validade — construto e interna, apoiadas em kappa, F1 e RQ07 (`artigo/ameacas.md`).
