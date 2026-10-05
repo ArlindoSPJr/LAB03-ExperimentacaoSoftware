@@ -17,7 +17,11 @@ Projeto: Lab03 de Laboratório de Experimentação de Software (Engenharia de So
 Toda Issue é implementada pelo agente **`dev-issue`** (`.claude/agents/dev-issue.md`), chamado com o ID da Issue (ex.: "use o agente dev-issue na Issue #2"). Resumo das regras que ele aplica:
 - **Validação:** a Issue precisa estar aberta, com Status `Ready` no Project "Kanban" nº 5, sem branch nem PR existentes e com as dependências e a onda anterior fechadas.
 - **Branch:** `feat/N-slug`, criada a partir da `main` atualizada (`git pull --ff-only`). O card vai para `In progress`.
-- **Plano e execução:** o plano da Issue é escrito com `superpowers:writing-plans` em `docs/superpowers/plans/AAAA-MM-DD-issue-N-slug.md` e executado com `superpowers:executing-plans` + `superpowers:test-driven-development`. O plugin superpowers está habilitado em `.claude/settings.json`.
+- **Plano e execução:** o tamanho do plano depende da Issue.
+  - **Modo completo:** só para Issues grandes ou ambíguas (integração, base de outras Issues, mais de 3 arquivos de produção ou decisões em aberto). O plano é escrito com `superpowers:writing-plans` em `docs/superpowers/plans/AAAA-MM-DD-issue-N-slug.md`.
+  - **Modo leve:** nas demais Issues, uma checklist interna que aparece na seção "Abordagem" do PR.
+  - **Execução:** sempre com `superpowers:test-driven-development`; no modo completo, também com `superpowers:executing-plans`.
+  - O plugin superpowers está habilitado em `.claude/settings.json`.
 - **Dúvidas:** o agente não adivinha. Ele para, commita o trabalho consistente sem dar push e devolve um relatório começando por `DÚVIDA` (pergunta, opções e recomendação). Depois é retomado com a resposta.
 - **Commits:** TDD (teste falhando → implementação mínima → passa → commit), com **todo commit citando a Issue**: `tipo(modulo): descrição (#N)`, sem co-autor.
 - **PR:** para a `main`, com `Closes #N`, aguardando o CI de testes (GitHub Actions) verde. **O merge é manual**, feito pelo revisor humano; o agente nunca faz merge.

@@ -1,6 +1,6 @@
 ---
 name: dev-issue
-description: Implementa UMA Issue do Lab03 de ponta a ponta (validação no GitHub Projects, branch a partir da main atualizada, plano com superpowers:writing-plans, TDD com as skills do superpowers, commits citando a Issue, PR para a main com CI). Use quando o usuário pedir para desenvolver uma Issue informando o ID (#N, N ou S01-O1.2). Para em caso de dúvida e devolve a pergunta ao usuário. Nunca faz merge.
+description: Implementa UMA Issue do Lab03 de ponta a ponta (validação no GitHub Projects, branch a partir da main atualizada, plano leve ou completo (superpowers:writing-plans só em Issues grandes/ambíguas), TDD com as skills do superpowers, commits citando a Issue, PR para a main com CI). Use quando o usuário pedir para desenvolver uma Issue informando o ID (#N, N ou S01-O1.2). Para em caso de dúvida e devolve a pergunta ao usuário. Nunca faz merge.
 tools: Bash, Read, Edit, Write, Grep, Glob, Skill
 ---
 
@@ -22,8 +22,8 @@ Carregue cada skill no momento indicado e siga-a, com os ajustes desta seção (
 
 | Momento | Skill | Ajuste para este agente |
 |---|---|---|
-| Fase 3: plano da Issue | `superpowers:writing-plans` | A **especificação** é a Issue + `docs/ISSUES.md` + o plano geral do projeto + o enunciado. Salve em `docs/superpowers/plans/AAAA-MM-DD-issue-N-<slug>.md`. **Não** faça a etapa de "Execution Handoff" (não pergunte o método de execução): o método já está definido como execução inline. |
-| Fase 4: execução | `superpowers:executing-plans` | Execute o plano tarefa a tarefa nesta mesma sessão. Não use git worktree (a branch da Fase 2 já isola o trabalho). |
+| Fase 3: plano da Issue, **só no modo completo** | `superpowers:writing-plans` | A **especificação** é a Issue + `docs/ISSUES.md` + o plano geral do projeto + o enunciado. Salve em `docs/superpowers/plans/AAAA-MM-DD-issue-N-<slug>.md`. **Não** faça a etapa de "Execution Handoff" (não pergunte o método de execução): o método já está definido como execução inline. No modo leve, esta skill não é usada. |
+| Fase 4: execução, **só no modo completo** | `superpowers:executing-plans` | Execute o plano tarefa a tarefa nesta mesma sessão. Não use git worktree (a branch da Fase 2 já isola o trabalho). |
 | Fase 4: cada comportamento | `superpowers:test-driven-development` | Ciclo RED → GREEN → REFACTOR. Nenhum código de produção sem um teste falhando antes. |
 | Teste falhando sem motivo claro / CI vermelho | `superpowers:systematic-debugging` | Achar a causa raiz antes de corrigir. |
 | Antes de abrir o PR | `superpowers:verification-before-completion` | Rodar os comandos e mostrar a saída antes de afirmar que está pronto. |
@@ -94,16 +94,34 @@ Em conflito, o enunciado vence. Não invente definições: o que não estiver de
    ```
 4. Se a Issue não tiver assignee, atribua ao usuário autenticado (`gh issue edit N --add-assignee @me`).
 
-## Fase 3 — Plano da Issue (`superpowers:writing-plans`)
+## Fase 3 — Plano da Issue (modo leve ou completo)
+O usuário só revisa PRs. O plano serve para **você** pensar antes de codar, não para aprovação. Escolha o modo e registre a escolha no relatório e no PR.
+
+**Modo completo** (`superpowers:writing-plans`, arquivo commitado). Use se a Issue atender a **qualquer** um destes critérios:
+- integra módulos de outras ondas ou outros integrantes (ex.: orquestrador, etapas de pipeline, consolidação do dataset);
+- é base de que outras Issues dependem diretamente (ex.: cliente HTTP/cache);
+- cria ou altera mais de 3 arquivos de produção (sem contar testes);
+- toca em algum item de "Decisões a confirmar com o grupo" ou exige escolha de heurística ou método (ex.: heurística de release corretiva, coleta completa, RQ06/RQ07);
+- a Issue ou o plano geral não definem as assinaturas públicas que ela entrega.
+
+Exemplos que caem no modo completo: S01-O1.2 (#2), S01-O3.4 (#14), S02-O1.1 (#23), S02-O1.3 (#25), S02-O3.1–O3.5 (#32–#36), S03-O2.2 (#44), S03-O3.1 (#45). Em caso de dúvida entre os modos, use o completo.
+
+Passos do modo completo:
 1. Escreva o plano conforme a skill, em `docs/superpowers/plans/AAAA-MM-DD-issue-N-<slug>.md`, com:
    - arquivos, assinaturas exatas dos contratos e passos de TDD com o código dos testes;
    - os casos de borda da Issue e do Review Focus.
 2. Faça a auto-revisão da skill: cobertura da Issue, ausência de placeholders e consistência de nomes.
-3. Se a auto-revisão revelar uma dúvida que mude o resultado, siga a seção **Dúvidas** antes de implementar.
-4. Commit: `docs(plano): plano de implementação da Issue (#N)`.
+3. Commit: `docs(plano): plano de implementação da Issue (#N)`.
 
-## Fase 4 — Execução com TDD (`superpowers:executing-plans` + `superpowers:test-driven-development`)
-Para cada tarefa do plano e para cada comportamento:
+**Modo leve** (todas as demais Issues, ex.: scaffold, funções puras com assinatura já definida no plano geral):
+1. **Não** crie arquivo de plano nem use `writing-plans`.
+2. Monte uma checklist interna com os comportamentos a testar, em ordem. Cubra cada item da "Entrega" da Issue e os casos de borda do Review Focus que se aplicam.
+3. Confira a checklist contra a Issue antes de começar. Ela vira a seção **Abordagem** do PR.
+
+Nos dois modos: se o planejamento revelar uma dúvida que mude o resultado, siga a seção **Dúvidas** antes de implementar.
+
+## Fase 4 — Execução com TDD (`superpowers:test-driven-development`; no modo completo, também `superpowers:executing-plans`)
+Para cada tarefa do plano (modo completo) ou item da checklist (modo leve), e para cada comportamento:
 1. **Teste primeiro**, em `tests/`, com fixtures artesanais. Use os exemplos numéricos do enunciado quando existirem.
 2. Rode só esse teste (`pytest tests/<arquivo>.py::<teste> -v`) e confirme que **falha pelo motivo esperado**.
 3. **Implementação mínima** para passar.
@@ -115,7 +133,7 @@ Ao terminar o plano:
 - respeite o `--cov-fail-under` configurado em `.github/workflows/testes.yml`;
 - só avance com **todos os testes verdes** (`superpowers:verification-before-completion`).
 
-Se o plano se mostrar errado durante a execução, corrija o plano no mesmo branch (commit `docs(plano): ... (#N)`). Se a correção mudar o escopo da Issue, siga a seção **Dúvidas**.
+Se o plano (modo completo) se mostrar errado durante a execução, corrija o arquivo no mesmo branch (commit `docs(plano): ... (#N)`). No modo leve, basta ajustar a checklist. Se a correção mudar o escopo da Issue, siga a seção **Dúvidas**.
 
 Regras de código:
 - Altere apenas os arquivos listados na Issue (e seus testes). Mudar um contrato do plano ou um arquivo de outra onda → seção **Dúvidas**.
@@ -138,7 +156,10 @@ Regras de código:
 1. `git push -u origin feat/N-<slug>`.
 2. Crie o PR com `gh pr create --base main --title "<ID> — <título da Issue> (#N)" --body-file <arquivo>`. O corpo precisa ter:
    - `Closes #N` na primeira linha;
-   - **Plano**: caminho do plano da Issue;
+   - **Abordagem**:
+     - modo do plano (leve ou completo) e o motivo;
+     - no modo completo, o caminho do arquivo do plano;
+     - no modo leve, a checklist de comportamentos testados, em ordem;
    - **Resumo** do que foi implementado;
    - **Interfaces entregues**: funções e classes públicas com as assinaturas reais (serve de nota de passagem);
    - **Testes**: lista dos testes adicionados e a saída final do `pytest` com cobertura;
@@ -151,7 +172,7 @@ Regras de código:
 Curto e objetivo:
 - Issue e link do PR;
 - status do CI;
-- caminho do plano;
+- modo do plano (leve ou completo) e, se completo, o caminho do arquivo;
 - arquivos criados ou alterados;
 - interfaces públicas entregues;
 - testes, com a contagem e a cobertura;
