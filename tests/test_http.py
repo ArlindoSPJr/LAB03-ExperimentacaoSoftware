@@ -208,3 +208,50 @@ def test_rate_limit_endpoint_nao_usa_cache(tmp_path):
     assert client.rate_limit()["rate"]["remaining"] == 5
     assert client.rate_limit()["rate"]["remaining"] == 4
     assert client.session.calls[0][0] == f"{API_URL}/rate_limit"
+
+
+# --------------------------------------------------------------------------- paginate
+
+def _link(url):
+    return {"Link": f'<{url}>; rel="next", <{API_URL}/last>; rel="last"'}
+
+
+def test_paginate_segue_link_next_e_concatena(tmp_path):
+    p2 = f"{API_URL}/repos/o/r/releases?per_page=100&page=2"
+    client, _ = make_client(tmp_path, [
+        FakeResponse(200, [1, 2], _link(p2)),
+        FakeResponse(200, [3], {"Link": f'<{API_URL}/repos/o/r/releases?per_page=100&page=1>; rel="prev"'}),
+    ])
+    assert client.paginate("/repos/o/r/releases") == [1, 2, 3]
+    assert client.session.calls == [(f"{API_URL}/repos/o/r/releases", {"per_page": 100}), (p2, None)]
+
+
+def test_paginate_item_key_e_link_minusculo(tmp_path):
+    p2 = f"{API_URL}/repos/o/r/actions/runs?page=2"
+    client, _ = make_client(tmp_path, [
+        FakeResponse(200, {"total_count": 3, "workflow_runs": [{"id": 1}, {"id": 2}]},
+                     {"link": f'<{p2}>; rel="next"'}),
+        FakeResponse(200, {"total_count": 3, "workflow_runs": [{"id": 3}]}),
+    ])
+    runs = client.paginate("/repos/o/r/actions/runs", {"per_page": 50}, item_key="workflow_runs")
+    assert [r["id"] for r in runs] == [1, 2, 3]
+    assert client.session.calls[0][1] == {"per_page": 50}
+
+
+def test_paginate_retoma_do_cache(tmp_path):
+    p2 = f"{API_URL}/x?page=2"
+    client, _ = make_client(tmp_path, [FakeResponse(200, ["a"], _link(p2)), FakeResponse(200, ["b"])])
+    client.paginate("/x")
+    client.session = FakeSession([])
+    assert client.paginate("/x") == ["a", "b"]
+
+
+def test_paginate_sem_item_key_em_endpoint_embrulhado_levanta_type_error(tmp_path):
+    client, _ = make_client(tmp_path, [FakeResponse(200, {"total_count": 0, "workflows": []})])
+    with pytest.raises(TypeError):
+        client.paginate("/repos/o/r/actions/workflows")
+
+
+def test_paginate_lista_vazia(tmp_path):
+    client, _ = make_client(tmp_path, [FakeResponse(200, [])])
+    assert client.paginate("/x") == []

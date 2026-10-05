@@ -4,6 +4,7 @@ Usa `requests` diretamente (bibliotecas de acesso à API do GitHub são proibida
 """
 from __future__ import annotations
 
+import re
 import time
 from urllib.parse import urlencode
 
@@ -15,6 +16,7 @@ from pipeline.cache import DiskCache
 API_URL = "https://api.github.com"
 TIMEOUT = 30
 SECONDARY_WAIT = 60  # s; recomendação do GitHub para limite secundário sem Retry-After
+_NEXT_RE = re.compile(r'<([^>]+)>\s*;\s*rel="next"')
 
 
 class GitHubError(Exception):
@@ -38,6 +40,12 @@ def _json(resp):
 def _message(resp) -> str:
     data = _json(resp)
     return data.get("message", "") if isinstance(data, dict) else ""
+
+
+def next_link(headers) -> str | None:
+    """URL da próxima página no cabeçalho Link, ou None na última página."""
+    match = _NEXT_RE.search(CaseInsensitiveDict(headers).get("Link", ""))
+    return match.group(1) if match else None
 
 
 class GitHubClient:
@@ -72,6 +80,24 @@ class GitHubClient:
         data, headers = self._request(url, params)
         self.cache.set(key, {"json": data, "headers": dict(headers)})
         return data, headers
+
+    def paginate(self, path: str, params: dict | None = None, item_key: str | None = None) -> list:
+        """Segue Link rel="next" até o fim e concatena os itens de todas as páginas.
+
+        `item_key` extrai a lista de endpoints embrulhados (ex.: "workflow_runs").
+        """
+        params = {"per_page": 100, **(params or {})}
+        items: list = []
+        data, headers = self.get(path, params)
+        while True:
+            page = (data or {}).get(item_key, []) if item_key else (data or [])
+            if not isinstance(page, list):
+                raise TypeError(f"página de {path} não é lista; informe item_key")
+            items.extend(page)
+            url = next_link(headers)
+            if url is None:
+                return items
+            data, headers = self.get(url)  # a URL do Link já traz os parâmetros
 
     def _request(self, url: str, params: dict | None):
         """Faz a requisição com tentativas; só retorna respostas 2xx (as únicas cacheadas)."""
