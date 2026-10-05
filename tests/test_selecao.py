@@ -93,3 +93,16 @@ def test_search_mesma_colecao_em_outra_ordem_gera_mesma_lista():
     a = search_candidates(FakeClient(search={q(1, 2): repos(*nomes)}), [[1, 2]])
     b = search_candidates(FakeClient(search={q(1, 2): repos(*reversed(nomes))}), [[1, 2]])
     assert a == b
+
+
+def test_search_sem_faixas_ou_faixa_vazia():
+    assert search_candidates(FakeClient(), []) == []
+    assert search_candidates(FakeClient(), [[1, 2]]) == []
+
+
+@pytest.mark.parametrize("faixas, limite", [([[5, 1]], 1000), ([[1]], 1000), ([[1, 2]], 0)])
+def test_search_parametros_invalidos(faixas, limite):
+    client = FakeClient()
+    with pytest.raises(ValueError):
+        search_candidates(client, faixas, per_range_limit=limite)
+    assert client.paginate_calls == []

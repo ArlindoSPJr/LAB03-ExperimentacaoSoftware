@@ -27,6 +27,11 @@ def search_candidates(client, star_ranges: list[list[int]], per_range_limit: int
     limitada a min(per_range_limit, 1000) resultados. A lista é ordenada antes do
     embaralhamento, para não depender da ordem devolvida pela API.
     """
+    if per_range_limit < 1:
+        raise ValueError("per_range_limit precisa ser >= 1")
+    for star_range in star_ranges:
+        if len(star_range) != 2 or star_range[0] > star_range[1]:
+            raise ValueError(f"faixa de estrelas inválida: {star_range!r}")
     limit = min(per_range_limit, SEARCH_MAX)
     unique: set[str] = set()
     for lo, hi in star_ranges:
