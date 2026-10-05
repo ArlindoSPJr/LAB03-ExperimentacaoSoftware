@@ -3,7 +3,8 @@ import random
 
 import pytest
 
-from pipeline.selecao import search_candidates
+from pipeline.http import NotFoundError
+from pipeline.selecao import search_candidates, uses_actions
 
 
 class FakeClient:
@@ -106,3 +107,29 @@ def test_search_parametros_invalidos(faixas, limite):
     with pytest.raises(ValueError):
         search_candidates(client, faixas, per_range_limit=limite)
     assert client.paginate_calls == []
+
+
+# --------------------------------------------------------------------------- uses_actions
+
+WF = "/repos/o/r/actions/workflows"
+
+
+def test_uses_actions_true_quando_ha_workflows():
+    client = FakeClient(gets={WF: {"total_count": 3, "workflows": [{}]}})
+    assert uses_actions(client, "o/r") is True
+    assert client.get_calls == [(WF, {"per_page": 1})]
+
+
+def test_uses_actions_false_com_total_count_zero():
+    assert uses_actions(FakeClient(gets={WF: {"total_count": 0, "workflows": []}}), "o/r") is False
+
+
+def test_uses_actions_false_sem_total_count():
+    assert uses_actions(FakeClient(gets={WF: {}}), "o/r") is False
+    assert uses_actions(FakeClient(gets={WF: None}), "o/r") is False
+
+
+def test_uses_actions_propaga_404():
+    client = FakeClient(gets={WF: NotFoundError(404, WF, "Not Found")})
+    with pytest.raises(NotFoundError):
+        uses_actions(client, "o/r")

@@ -43,3 +43,12 @@ def search_candidates(client, star_ranges: list[list[int]], per_range_limit: int
     names = sorted(unique)
     random.Random(RANDOM_STATE).shuffle(names)
     return names
+
+
+def uses_actions(client, full_name: str) -> bool:
+    """True se o repositório tem ao menos um workflow (total_count > 0).
+
+    NotFoundError (repositório apagado/renomeado) é propagada para o chamador.
+    """
+    data, _ = client.get(f"/repos/{full_name}/actions/workflows", {"per_page": 1})
+    return int((data or {}).get("total_count", 0)) > 0
