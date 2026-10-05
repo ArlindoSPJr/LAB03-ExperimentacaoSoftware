@@ -76,3 +76,20 @@ def test_search_faixa_abaixo_do_teto_nao_avisa(caplog):
     with caplog.at_level("WARNING"):
         search_candidates(client, [[1, 2]])
     assert caplog.text == ""
+
+
+def test_search_embaralha_com_random_state_42():
+    nomes = [f"o/r{i:02d}" for i in range(20)]
+    client = FakeClient(search={q(1, 2): repos(*nomes)})
+    resultado = search_candidates(client, [[1, 2]])
+    esperado = sorted(nomes)
+    random.Random(42).shuffle(esperado)
+    assert resultado == esperado
+    assert resultado != sorted(nomes)
+
+
+def test_search_mesma_colecao_em_outra_ordem_gera_mesma_lista():
+    nomes = [f"o/r{i:02d}" for i in range(20)]
+    a = search_candidates(FakeClient(search={q(1, 2): repos(*nomes)}), [[1, 2]])
+    b = search_candidates(FakeClient(search={q(1, 2): repos(*reversed(nomes))}), [[1, 2]])
+    assert a == b
