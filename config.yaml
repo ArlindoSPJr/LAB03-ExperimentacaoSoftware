@@ -1,0 +1,28 @@
+# Configuração do pipeline DORA (Lab03).
+# Uso: python -m pipeline --config config.yaml   (token lido de GITHUB_TOKEN)
+
+# Janela de observação de 12 meses.
+# PLACEHOLDER: substituir pelas datas fixadas pelo professor na abertura do Lab03S01.
+# ATENÇÃO: window.end precisa estar NO PASSADO. Se a janela ainda não terminou,
+# o cache em disco guarda respostas incompletas (releases/runs futuros ficam de fora)
+# e a retomada reaproveita esses dados errados.
+window:
+  start: "2025-10-01"
+  end: "2026-09-30"
+
+# Número de repositórios válidos na amostra (100 na S01; >= 300 na S02).
+sample_size: 100
+
+# Faixas de estrelas para fatiar a Search API (máx. 1.000 resultados por consulta).
+star_ranges:
+  - [1000, 2000]
+  - [2000, 5000]
+  - [5000, 20000]
+  - [20000, 500000]
+
+# Diretório do cache em disco (não versionado).
+cache_dir: cache
+
+# Opcional: lista fixa de repositórios ("owner/repo"); se presente, pula a busca.
+# repos:
+#   - owner/repo

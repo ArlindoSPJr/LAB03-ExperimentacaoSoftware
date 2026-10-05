@@ -1,0 +1,15 @@
+# Token e segredos
+.env
+
+# Cache da API e dados brutos (nunca versionar)
+cache/
+data/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
