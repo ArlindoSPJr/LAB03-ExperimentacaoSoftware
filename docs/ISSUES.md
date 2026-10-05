@@ -56,6 +56,7 @@ Ordem interna: O1.1 → O1.2 → (O1.3, O1.4, O1.5 em qualquer ordem). **O1.2 é
 - Arquivos: `requirements.txt`, `config.yaml` (janela placeholder até o professor fixar), `.gitignore` (`cache/`, `data/raw/`, `.env`), `.github/workflows/testes.yml`, `pipeline/__init__.py`, `metricas/__init__.py`, `tests/test_smoke.py`.
 - `requirements.txt` com **versões fixadas** (`pacote==x.y.z`) desde já: `requests`, `pyyaml`, `pandas`, `scipy`, `statsmodels`, `scikit-learn`, `matplotlib`, `pymannkendall`, `pytest`, `pytest-cov`.
 - `config.yaml`: `window.end` precisa estar **no passado** (senão o cache guarda dados incompletos); deixar comentário dizendo isso.
+- `testes.yml` dispara em `on: [push, pull_request]`, para que **todo PR** rode os testes.
 - Entrega: `pytest` verde no GitHub Actions. CI com `--cov-fail-under=0` até `S01-O3.5` subir para 80.
 - Commit: `chore: scaffold e CI (#N)`.
 ### S01-O1.2 — Cache em disco e cliente HTTP `tipo:codigo`
