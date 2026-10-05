@@ -14,6 +14,7 @@ from pipeline.cache import DiskCache
 
 API_URL = "https://api.github.com"
 TIMEOUT = 30
+SECONDARY_WAIT = 60  # s; recomendação do GitHub para limite secundário sem Retry-After
 
 
 class GitHubError(Exception):
@@ -92,6 +93,42 @@ class GitHubClient:
                     raise GitHubError(status, url, _message(resp))
                 self.sleep(2 ** attempt)
                 continue
+            if status in (403, 429):
+                wait = self._rate_limit_wait(status, headers, resp)
+                if wait is None:
+                    raise GitHubError(status, url, _message(resp))
+                if last:
+                    raise GitHubError(status, url, "limite de requisições persistente")
+                self.sleep(wait)
+                continue
             if status >= 400:
                 raise GitHubError(status, url, _message(resp))
+            reset = self._reset_wait(headers)
+            if reset is not None and reset > 0:
+                self.sleep(reset)  # cota acabou: espera renovar antes da próxima chamada
             return _json(resp), headers
+
+    def _reset_wait(self, headers) -> float | None:
+        """Segundos até X-RateLimit-Reset quando a cota primária acabou; None caso contrário."""
+        if headers.get("X-RateLimit-Remaining") != "0" or "X-RateLimit-Reset" not in headers:
+            return None
+        return float(headers["X-RateLimit-Reset"]) - self.clock()
+
+    def _rate_limit_wait(self, status: int, headers, resp) -> float | None:
+        """Espera para um 403/429 de rate limit; None se for 403 de permissão."""
+        if "Retry-After" in headers:
+            try:
+                return int(headers["Retry-After"])
+            except ValueError:
+                return SECONDARY_WAIT
+        reset = self._reset_wait(headers)
+        if reset is not None:
+            return max(reset, 1)
+        if status == 429 or "rate limit" in _message(resp).lower():
+            return SECONDARY_WAIT
+        return None
+
+    def rate_limit(self) -> dict:
+        """GET /rate_limit (não consome cota); nunca usa o cache."""
+        data, _ = self._request(self._url("/rate_limit"), None)
+        return data

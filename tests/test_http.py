@@ -127,3 +127,84 @@ def test_erro_de_rede_usa_backoff(tmp_path):
     client, sleeps = make_client(tmp_path, [requests.ConnectionError("caiu"), FakeResponse(200, {"ok": 1})])
     assert client.get("/x")[0] == {"ok": 1}
     assert sleeps == [1]
+
+
+# --------------------------------------------------------------------------- rate limit
+
+NOW = 1_000_000.0
+
+
+def test_remaining_zero_com_reset_futuro_espera_a_diferenca(tmp_path):
+    headers = {"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": str(int(NOW) + 120)}
+    client, sleeps = make_client(tmp_path, [FakeResponse(200, {"ok": 1}, headers)], now=NOW)
+    assert client.get("/x")[0] == {"ok": 1}
+    assert sleeps == [120]
+
+
+def test_remaining_positivo_ou_reset_passado_nao_espera(tmp_path):
+    client, sleeps = make_client(tmp_path, [
+        FakeResponse(200, [], {"X-RateLimit-Remaining": "10", "X-RateLimit-Reset": str(int(NOW) + 50)}),
+        FakeResponse(200, [], {"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": str(int(NOW) - 5)}),
+    ], now=NOW)
+    client.get("/a")
+    client.get("/b")
+    assert sleeps == []
+
+
+def test_403_cota_esgotada_espera_reset_e_repete(tmp_path):
+    headers = {"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": str(int(NOW) + 30)}
+    client, sleeps = make_client(tmp_path, [
+        FakeResponse(403, {"message": "API rate limit exceeded"}, headers),
+        FakeResponse(200, {"ok": 1}),
+    ], now=NOW)
+    assert client.get("/x")[0] == {"ok": 1}
+    assert sleeps == [30]
+
+
+@pytest.mark.parametrize("status", [403, 429])
+def test_retry_after_espera_e_repete(tmp_path, status):
+    client, sleeps = make_client(tmp_path, [
+        FakeResponse(status, {"message": "secondary rate limit"}, {"Retry-After": "7"}),
+        FakeResponse(200, {"ok": 1}),
+    ])
+    assert client.get("/search/repositories", {"q": "x"})[0] == {"ok": 1}
+    assert sleeps == [7]
+
+
+def test_429_sem_cabecalhos_espera_60s(tmp_path):
+    client, sleeps = make_client(tmp_path, [FakeResponse(429), FakeResponse(200, {"ok": 1})])
+    client.get("/x")
+    assert sleeps == [60]
+
+
+def test_403_secundario_sem_retry_after_espera_60s(tmp_path):
+    client, sleeps = make_client(tmp_path, [
+        FakeResponse(403, {"message": "You have exceeded a secondary rate limit."}),
+        FakeResponse(200, {"ok": 1}),
+    ])
+    client.get("/x")
+    assert sleeps == [60]
+
+
+def test_403_de_permissao_falha_sem_esperar_e_nao_cacheia(tmp_path):
+    client, sleeps = make_client(tmp_path, [FakeResponse(403, {"message": "Resource not accessible"})])
+    with pytest.raises(GitHubError) as exc:
+        client.get("/x")
+    assert exc.value.status == 403
+    assert sleeps == []
+    assert list((tmp_path / "cache").glob("*.json")) == []
+
+
+def test_rate_limit_persistente_esgota_tentativas(tmp_path):
+    client, sleeps = make_client(tmp_path, [FakeResponse(429, None, {"Retry-After": "1"})] * 3, max_retries=2)
+    with pytest.raises(GitHubError):
+        client.get("/x")
+    assert sleeps == [1, 1]
+
+
+def test_rate_limit_endpoint_nao_usa_cache(tmp_path):
+    client, _ = make_client(tmp_path, [FakeResponse(200, {"rate": {"remaining": 5}}),
+                                       FakeResponse(200, {"rate": {"remaining": 4}})])
+    assert client.rate_limit()["rate"]["remaining"] == 5
+    assert client.rate_limit()["rate"]["remaining"] == 4
+    assert client.session.calls[0][0] == f"{API_URL}/rate_limit"
