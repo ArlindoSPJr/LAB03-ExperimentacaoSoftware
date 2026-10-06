@@ -5,6 +5,7 @@ from metricas.classificacao import (
     score_deploy_freq,
     score_cfr,
     score_lead_time,
+    score_recovery,
 )
 
 
@@ -34,3 +35,10 @@ def test_score_lead_time_limites(days, esperado):
 ])
 def test_score_cfr_limites(rate, esperado):
     assert score_cfr(rate) == esperado
+
+
+@pytest.mark.parametrize("hours, esperado", [
+    (0, 4), (0.99, 4), (1, 3), (23.99, 3), (24, 2), (167.99, 2), (168, 1), (1000, 1),
+])
+def test_score_recovery_limites(hours, esperado):
+    assert score_recovery(hours) == esperado

@@ -42,3 +42,14 @@ def score_cfr(rate: float) -> int:
     if rate <= 0.45:
         return 2
     return 1
+
+
+def score_recovery(hours: float) -> int:
+    """Elite < 1 h; High < 24 h; Medium < 168 h (1 semana); Low >= 168 h."""
+    if hours < 1:
+        return 4
+    if hours < 24:
+        return 3
+    if hours < 168:
+        return 2
+    return 1
