@@ -88,3 +88,19 @@ def test_metadados_contributors_pede_uma_por_pagina_com_anonimos():
     client = client_with(([{"login": "a"}], link_last(5)))
     collect_metadata(client, "octo/hello")
     assert (CONTRIB, {"per_page": 1, "anon": "true"}) in client.calls
+
+
+@pytest.mark.parametrize("corpo, esperado", [
+    ([{"login": "unico"}], 1),   # um único contribuidor: sem Link
+    ([], 0),                     # lista vazia
+    (None, 0),                   # 204 sem corpo (repositório vazio)
+])
+def test_metadados_contributors_sem_link_conta_itens(corpo, esperado):
+    meta = collect_metadata(client_with((corpo, {})), "octo/hello")
+    assert meta["contributors"] == esperado
+
+
+def test_metadados_language_nula():
+    repo = {**REPO, "language": None}
+    meta = collect_metadata(client_with(([], {}), repo=repo), "octo/hello")
+    assert meta["language"] is None

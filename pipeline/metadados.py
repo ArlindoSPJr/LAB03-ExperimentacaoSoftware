@@ -23,7 +23,10 @@ def _last_page(headers) -> int | None:
 def _contributors(client, full_name: str) -> int:
     """Contribuidores (incluindo anônimos) lendo a última página com per_page=1."""
     data, headers = client.get(f"/repos/{full_name}/contributors", {"per_page": 1, "anon": "true"})
-    return _last_page(headers)
+    last = _last_page(headers)
+    if last is not None:
+        return last
+    return len(data) if isinstance(data, list) else 0  # sem Link: 0 ou 1 item; 204 sem corpo -> 0
 
 
 def collect_metadata(client, full_name: str) -> dict:
