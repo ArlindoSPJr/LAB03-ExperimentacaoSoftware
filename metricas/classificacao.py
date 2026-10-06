@@ -20,3 +20,14 @@ def score_deploy_freq(per_week: float) -> int:
     if per_week >= UMA_POR_MES_POR_SEMANA:
         return 2
     return 1
+
+
+def score_lead_time(days: float) -> int:
+    """Elite < 1 dia; High < 7 dias; Medium < 30 dias; Low >= 30 dias."""
+    if days < 1:
+        return 4
+    if days < 7:
+        return 3
+    if days < 30:
+        return 2
+    return 1
