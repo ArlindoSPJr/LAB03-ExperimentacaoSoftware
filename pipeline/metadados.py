@@ -1,9 +1,14 @@
 """Metadados de repositório: estrelas, linguagem, contribuidores, criação e default branch."""
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlparse
+
+from pipeline.http import GitHubError
+
+log = logging.getLogger(__name__)
 
 _LAST_RE = re.compile(r'<([^>]+)>\s*;\s*rel="last"')
 
@@ -20,9 +25,22 @@ def _last_page(headers) -> int | None:
     return int(parse_qs(urlparse(match.group(1)).query)["page"][0])
 
 
-def _contributors(client, full_name: str) -> int:
-    """Contribuidores (incluindo anônimos) lendo a última página com per_page=1."""
-    data, headers = client.get(f"/repos/{full_name}/contributors", {"per_page": 1, "anon": "true"})
+def _too_large(exc: GitHubError) -> bool:
+    return exc.status == 403 and "too large" in str(exc).lower()
+
+
+def _contributors(client, full_name: str) -> int | None:
+    """Contribuidores (incluindo anônimos) lendo a última página com per_page=1.
+
+    None quando a API recusa a lista por ser grande demais (403 "too large").
+    """
+    try:
+        data, headers = client.get(f"/repos/{full_name}/contributors", {"per_page": 1, "anon": "true"})
+    except GitHubError as exc:
+        if not _too_large(exc):
+            raise
+        log.warning("%s: lista de contribuidores grande demais para a API; contributors=None", full_name)
+        return None
     last = _last_page(headers)
     if last is not None:
         return last

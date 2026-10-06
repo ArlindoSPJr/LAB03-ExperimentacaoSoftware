@@ -104,3 +104,28 @@ def test_metadados_language_nula():
     repo = {**REPO, "language": None}
     meta = collect_metadata(client_with(([], {}), repo=repo), "octo/hello")
     assert meta["language"] is None
+
+
+MSG_GRANDE = ("The history or contributor list is too large to list contributors "
+              "for this repository via the API.")
+
+
+def test_metadados_lista_grande_demais_vira_none_e_avisa(caplog):
+    erro = GitHubError(403, "https://api.github.com" + CONTRIB, MSG_GRANDE)
+    with caplog.at_level("WARNING"):
+        meta = collect_metadata(client_with(erro), "octo/hello")
+    assert meta["contributors"] is None
+    assert meta["stars"] == 1234
+    assert "octo/hello" in caplog.text
+
+
+def test_metadados_outro_403_e_propagado():
+    erro = GitHubError(403, "https://api.github.com" + CONTRIB, "Resource not accessible")
+    with pytest.raises(GitHubError):
+        collect_metadata(client_with(erro), "octo/hello")
+
+
+def test_metadados_repositorio_inexistente_propaga_not_found():
+    client = FakeClient({"/repos/octo/hello": NotFoundError(404, "url", "Not Found")})
+    with pytest.raises(NotFoundError):
+        collect_metadata(client, "octo/hello")
