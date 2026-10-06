@@ -7,8 +7,13 @@ Unidades: frequência em releases por semana; lead time em dias;
 CFR em fração de 0 a 1; tempo de recuperação em horas.
 """
 
+import math
+import statistics
+
 # "1 por mês" expresso em releases por semana (52,14 semanas / 12 meses ≈ 4,345).
 UMA_POR_MES_POR_SEMANA = 1 / 4.345
+
+CATEGORIAS = {4: "Elite", 3: "High", 2: "Medium", 1: "Low"}
 
 
 def score_deploy_freq(per_week: float) -> int:
@@ -53,3 +58,8 @@ def score_recovery(hours: float) -> int:
     if hours < 168:
         return 2
     return 1
+
+
+def overall(scores: list[int]) -> str:
+    """Categoria geral: mediana das notas arredondada para baixo (enunciado, RQ 07)."""
+    return CATEGORIAS[math.floor(statistics.median(scores))]

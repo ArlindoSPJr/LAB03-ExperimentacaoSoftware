@@ -2,6 +2,7 @@ import pytest
 
 from metricas.classificacao import (
     UMA_POR_MES_POR_SEMANA,
+    overall,
     score_deploy_freq,
     score_cfr,
     score_lead_time,
@@ -42,3 +43,15 @@ def test_score_cfr_limites(rate, esperado):
 ])
 def test_score_recovery_limites(hours, esperado):
     assert score_recovery(hours) == esperado
+
+
+@pytest.mark.parametrize("scores, esperado", [
+    ([4, 3, 3, 1], "High"),      # exemplo do enunciado
+    ([4, 4, 1, 1], "Medium"),    # mediana 2,5 -> 2
+    ([4, 4, 4, 4], "Elite"),
+    ([1, 1, 1, 1], "Low"),
+    ([4, 4, 3, 1], "High"),      # mediana 3,5 -> 3
+    ([2, 1, 1, 4], "Low"),       # mediana 1,5 -> 1 (ordem não importa)
+])
+def test_overall_mediana_arredondada_para_baixo(scores, esperado):
+    assert overall(scores) == esperado
