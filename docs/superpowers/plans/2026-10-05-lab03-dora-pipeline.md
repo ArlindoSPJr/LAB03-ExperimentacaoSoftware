@@ -50,8 +50,9 @@ class GitHubClient:
 Release = {"tag_name": str, "published_at": datetime, "prerelease": bool, "body": str | None}
 Commit  = {"sha": str, "author_date": datetime, "message": str}
 Run     = {"workflow_id": int, "conclusion": str | None, "run_started_at": datetime, "updated_at": datetime}
-RepoMeta= {"full_name": str, "stars": int, "language": str | None, "contributors": int,
+RepoMeta= {"full_name": str, "stars": int, "language": str | None, "contributors": int | None,
            "created_at": datetime, "default_branch": str}
+           # contributors = None só quando a API recusa a lista (403 "contributor list is too large"); ver #4
 ```
 
 ## Ordem de execução (dependências)
