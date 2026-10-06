@@ -19,3 +19,9 @@ def test_funil_calcula_descartados_entre_etapas():
          "motivo": "poucas releases ou runs"},
         {"etapa": "amostra final", "restantes": 350, "descartados": 260, "motivo": "amostra atingida"},
     ]
+
+
+def test_funil_vazio_tem_colunas_e_nenhuma_linha():
+    df = Funnel().to_dataframe()
+    assert list(df.columns) == ["etapa", "restantes", "descartados", "motivo"]
+    assert df.empty
