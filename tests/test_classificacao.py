@@ -3,6 +3,7 @@ import pytest
 from metricas.classificacao import (
     UMA_POR_MES_POR_SEMANA,
     score_deploy_freq,
+    score_cfr,
     score_lead_time,
 )
 
@@ -26,3 +27,10 @@ def test_score_deploy_freq_um_por_mes_na_janela_da_rq01():
 ])
 def test_score_lead_time_limites(days, esperado):
     assert score_lead_time(days) == esperado
+
+
+@pytest.mark.parametrize("rate, esperado", [
+    (0, 4), (0.15, 4), (0.1501, 3), (0.30, 3), (0.3001, 2), (0.45, 2), (0.4501, 1), (1, 1),
+])
+def test_score_cfr_limites(rate, esperado):
+    assert score_cfr(rate) == esperado

@@ -31,3 +31,14 @@ def score_lead_time(days: float) -> int:
     if days < 30:
         return 2
     return 1
+
+
+def score_cfr(rate: float) -> int:
+    """Elite <= 15%; High <= 30%; Medium <= 45%; Low > 45% (rate em fração 0-1)."""
+    if rate <= 0.15:
+        return 4
+    if rate <= 0.30:
+        return 3
+    if rate <= 0.45:
+        return 2
+    return 1
