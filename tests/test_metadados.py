@@ -129,3 +129,47 @@ def test_metadados_repositorio_inexistente_propaga_not_found():
     client = FakeClient({"/repos/octo/hello": NotFoundError(404, "url", "Not Found")})
     with pytest.raises(NotFoundError):
         collect_metadata(client, "octo/hello")
+
+
+# --------------------------------------------------------------------------- integração com o GitHubClient real
+
+class _Resp:
+    def __init__(self, status_code, json_data=None, headers=None):
+        self.status_code = status_code
+        self._json = json_data
+        self.headers = headers or {}
+
+    def json(self):
+        if self._json is None:
+            raise ValueError("sem corpo")
+        return self._json
+
+
+class _Session:
+    def __init__(self, responses):
+        self.responses = list(responses)
+        self.headers = {}
+
+    def get(self, url, params=None, timeout=None):
+        return self.responses.pop(0)
+
+
+def _real_client(tmp_path, responses):
+    from pipeline.cache import DiskCache
+    from pipeline.http import GitHubClient
+
+    sleeps = []
+    client = GitHubClient("tok", DiskCache(tmp_path / "cache"), sleep=sleeps.append)
+    client.session = _Session(responses)
+    return client, sleeps
+
+
+def test_cliente_real_204_sem_corpo_vira_zero(tmp_path):
+    client, _ = _real_client(tmp_path, [_Resp(200, REPO), _Resp(204)])
+    assert collect_metadata(client, "octo/hello")["contributors"] == 0
+
+
+def test_cliente_real_403_lista_grande_sem_retentativa(tmp_path):
+    client, sleeps = _real_client(tmp_path, [_Resp(200, REPO), _Resp(403, {"message": MSG_GRANDE})])
+    assert collect_metadata(client, "octo/hello")["contributors"] is None
+    assert sleeps == []  # 403 de lista grande não é rate limit: sem espera nem nova tentativa
