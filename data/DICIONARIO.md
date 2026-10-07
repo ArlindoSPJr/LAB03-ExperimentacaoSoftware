@@ -1,6 +1,6 @@
 # Dicionário de dados
 
-Versão inicial (S01-D1), com as colunas previstas no plano (`docs/superpowers/plans/2026-10-05-lab03-dora-pipeline.md`, Task 8). Toda coluna nova dos CSVs finais deve ser adicionada aqui com nome, tipo, unidade e fórmula/origem.
+Versão inicial (S01-D1), atualizada na S01-O3.4 com as colunas que o orquestrador (`pipeline/orquestrador.py`) realmente grava, na mesma ordem do CSV. Toda coluna nova dos CSVs finais deve ser adicionada aqui com nome, tipo, unidade e fórmula/origem.
 
 Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`window.start`, `window.end`); célula vazia = valor ausente (`None`).
 
@@ -12,8 +12,9 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 | `stars` | inteiro | estrelas | `stargazers_count` de `GET /repos/{owner}/{repo}` |
 | `language` | texto | — | `language` de `GET /repos/{owner}/{repo}` (linguagem principal; pode ser vazia) |
 | `contributors` | inteiro | pessoas | Última página do cabeçalho `Link` de `GET /repos/{owner}/{repo}/contributors?per_page=1&anon=true` (inclui anônimos); vazio quando a API recusa a lista por ser grande demais |
-| `age_days` | inteiro | dias | Fim da janela − `created_at` do repositório (a confirmar na S01-O3.4) |
+| `age_days` | inteiro | dias | Dias inteiros entre a data de `created_at` do repositório e `window.end` |
 | `n_releases` | inteiro | releases | Releases com `draft=false`, `prerelease=false` e `published_at` dentro da janela (`GET /repos/{owner}/{repo}/releases`) |
+| `n_runs_validos` | inteiro | runs | Workflow runs do default branch com `event=push` na janela cuja `conclusion` é sucesso ou falha (os ignorados pela tabela de `conclusion` não contam). Critério de inclusão: ≥ 50 |
 | `deploy_freq_week` | decimal | releases/semana | `n_releases` ÷ semanas da janela (dias da janela ÷ 7 ≈ 52,1) — RQ01 |
 | `lead_time_a_days` | decimal | dias | RQ02 (a): para cada release R da janela, `published_at(R)` − `commit.author.date` do commit mais antigo de `compare/{anterior}...{R}`; mediana entre as releases. Primeira release da história ignorada |
 | `lead_time_b_days` | decimal | dias | RQ02 (b): `published_at(R)` − `commit.author.date` de cada commit de cada release; mediana de todos os commits |
@@ -24,6 +25,7 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 | `n_falhas_iniciais` | inteiro | runs | Falhas antes do primeiro sucesso do workflow na janela (não abrem episódio) |
 | `n_lead_negativos` | inteiro | commits | Commits com `commit.author.date` posterior à release (rebase/squash), descartados do lead time |
 | `compare_404` | inteiro | releases | Releases ignoradas no lead time porque `compare/{anterior}...{R}` retornou 404 |
+| `meses_no_teto` | texto | meses | Meses (`AAAA-MM`, separados por `;`) em que a consulta de runs devolveu 1.000 resultados, o teto da API: os runs desses meses podem estar incompletos. Vazio se nenhum |
 | `score_freq` | inteiro | nota 1–4 | Nota DORA da frequência: ≥ 7/sem = 4; ≥ 1/sem = 3; ≥ 1/mês = 2; senão 1 |
 | `score_lead` | inteiro | nota 1–4 | Nota DORA do lead time (a): < 1 dia = 4; < 7 dias = 3; < 30 dias = 2; senão 1 |
 | `score_cfr` | inteiro | nota 1–4 | Nota DORA do CFR (a): ≤ 15% = 4; ≤ 30% = 3; ≤ 45% = 2; senão 1 |
@@ -34,7 +36,7 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 
 | Coluna | Tipo | Unidade | Fórmula / origem |
 |---|---|---|---|
-| `etapa` | texto | — | Nome da etapa (ex.: candidatos, com Actions, ≥ 5 releases e ≥ 50 runs, amostra final) |
+| `etapa` | texto | — | Nome da etapa, em ordem: `candidatos da busca` (ou `lista fornecida`, quando o config tem `repos`), `processados`, `com GitHub Actions`, `metadados coletados`, `>= 5 releases na janela`, `>= 50 runs válidos na janela`, `amostra final` |
 | `restantes` | inteiro | repositórios | Repositórios que passaram pela etapa |
 | `descartados` | inteiro | repositórios | `restantes` da etapa anterior − `restantes` desta etapa (0 na primeira) |
-| `motivo` | texto | — | Motivo do descarte nesta etapa |
+| `motivo` | texto | — | Motivo do descarte nesta etapa (vazio se ninguém foi descartado). Em `processados`, os descartados são os candidatos que nem foram processados porque a amostra já tinha `sample_size` repositórios válidos |
