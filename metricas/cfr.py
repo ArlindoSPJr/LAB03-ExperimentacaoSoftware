@@ -16,3 +16,11 @@ def classify_conclusion(c: str | None) -> str | None:
     if c in FALHAS:
         return "failure"
     return None
+
+
+def cfr_ci(runs: list[dict]) -> float | None:
+    """falhas / (falhas + sucessos) sobre todos os runs; None sem runs válidos."""
+    classes = [classify_conclusion(run["conclusion"]) for run in runs]
+    falhas = classes.count("failure")
+    validos = falhas + classes.count("success")
+    return falhas / validos if validos else None
