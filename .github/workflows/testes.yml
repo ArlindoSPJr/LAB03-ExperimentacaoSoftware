@@ -9,5 +9,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      # --cov-fail-under=0 até existirem as métricas; a Issue S01-O3.5 sobe para 80.
-      - run: pytest --cov=metricas --cov-report=term-missing --cov-fail-under=0
+      # Cobertura mínima de 80% do módulo metricas (enunciado, seção 7).
+      - run: pytest --cov=metricas --cov-report=term-missing --cov-fail-under=80
