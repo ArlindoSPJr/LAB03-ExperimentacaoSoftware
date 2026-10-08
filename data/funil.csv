@@ -1,0 +1,8 @@
+etapa,restantes,descartados,motivo
+candidatos da busca,4000,0,
+processados,442,3558,não processados: amostra completa (sample_size atingido)
+com GitHub Actions,311,131,sem workflows do GitHub Actions
+metadados coletados,311,0,
+>= 5 releases na janela,127,184,menos de 5 releases não-pré-release na janela
+>= 50 runs válidos na janela,100,27,menos de 50 runs válidos (push no default branch)
+amostra final,100,0,
