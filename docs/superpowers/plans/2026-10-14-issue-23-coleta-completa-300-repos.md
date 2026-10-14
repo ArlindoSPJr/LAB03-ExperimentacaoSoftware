@@ -51,7 +51,7 @@
 def test_loga_o_inicio_de_cada_repositorio(tmp_path, caplog):
     client = FakeClient({"o/a": repo(actions=False), "o/b": repo()})
     with caplog.at_level(logging.INFO, logger="pipeline.orquestrador"):
-        executar(client, config(), tmp_path)
+        executar(client, config(repos=["o/a", "o/b"]), tmp_path)
     mensagens = [r.getMessage() for r in caplog.records]
     assert "o/a: iniciando (candidato 1 de 2; válidos 0/10)" in mensagens
     assert "o/b: iniciando (candidato 2 de 2; válidos 0/10)" in mensagens
@@ -241,3 +241,14 @@ def test_faixas_de_estrelas_validas():
 
 - Copiar `data/metricas.csv` e `data/funil.csv` gerados pela coleta dos 300 (sobrescrevem os da S01), conferir `len(metricas) >= 300`, commit `data: coleta completa com N repositórios e funil (#23)`.
 - Tabela do funil e resumo (mediana/IQR) no corpo do PR. Abrir o PR só depois disso.
+
+---
+
+## Registro da execução (2026-10-14)
+
+- **Task 1, ajuste:** o teste usa `config(repos=["o/a", "o/b"])`. Com a busca, os candidatos são embaralhados (decisão 2) e a ordem `o/a, o/b` não é garantida.
+- **Task 2:** com a retomada apontando para outro `cache_dir`, o teste falhou com "chamada repetida ao retomar após 1 chamadas"; com o mesmo cache, 3/3 verdes.
+- **Task 4 (execução real, `repos: [pallets/click, psf/requests]`, `sample_size: 2`, cache e `cwd` temporários):**
+  - rodada 1 interrompida com `_thread.interrupt_main()` (mesmo `KeyboardInterrupt` do Ctrl+C) após 4 s: 5 chamadas HTTP, 4 gravadas no cache;
+  - rodada 2 (retomada): 41 chamadas, 2/2 válidos, CSVs gerados; a única chamada repetida foi a 5ª da rodada 1 (`compare/8.3.0...8.3.1`), que estava em andamento quando veio a interrupção e por isso nunca foi gravada;
+  - rodada 3: 0 chamadas HTTP (tudo do cache).
