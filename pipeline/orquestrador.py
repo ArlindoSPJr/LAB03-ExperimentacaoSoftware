@@ -119,6 +119,8 @@ def executar(client, cfg: dict, saida: pathlib.Path) -> tuple[pd.DataFrame, pd.D
         if len(linhas) >= sample_size:
             break
         processados += 1
+        log.info("%s: iniciando (candidato %d de %d; válidos %d/%d)",
+                 full_name, processados, len(candidatos), len(linhas), sample_size)
         linha, etapa = _processar(client, full_name, janela)
         if linha is None:
             descartes[etapa] += 1
