@@ -6,7 +6,9 @@ import re
 import pandas as pd
 import pytest
 
-from pipeline.consolidar import COLUNAS_DERIVADAS, COLUNAS_FINAIS, derivar_colunas, validar
+from pipeline.consolidar import (
+    COLUNAS_DERIVADAS, COLUNAS_ELEGIVEIS, COLUNAS_FINAIS, derivar_colunas, elegiveis_sorteio, validar,
+)
 from pipeline.orquestrador import COLUNAS
 
 DICIONARIO = pathlib.Path(__file__).resolve().parents[1] / "data" / "DICIONARIO.md"
@@ -199,3 +201,33 @@ def test_derivar_nao_altera_a_entrada():
 
 def test_dicionario_documenta_todas_as_colunas_finais_na_ordem():
     assert colunas_do_dicionario("data/metricas.csv") == COLUNAS_FINAIS
+
+
+def amostra(*repos: str) -> pd.DataFrame:
+    return derivar_colunas(dataset(*[linha(repo=r, n_releases=5 + i, deploy_freq_week=(5 + i) / SEMANAS,
+                                           n_releases_pre=6 + i, deploy_freq_week_pre=(6 + i) / SEMANAS)
+                                     for i, r in enumerate(repos)]))
+
+
+def test_elegiveis_sao_toda_a_amostra_final_ordenada_por_repo():
+    elegiveis = elegiveis_sorteio(amostra("zeta/z", "alpha/a", "Mid/m"))
+    assert list(elegiveis["repo"]) == ["alpha/a", "Mid/m", "zeta/z"]
+    assert list(elegiveis.columns) == COLUNAS_ELEGIVEIS
+
+
+def test_elegiveis_tem_link_das_releases_e_contagem():
+    elegiveis = elegiveis_sorteio(amostra("octo/hello", "octo/world")).set_index("repo")
+    assert elegiveis.loc["octo/world", "url_releases"] == "https://github.com/octo/world/releases"
+    assert elegiveis.loc["octo/world", "n_releases"] == 6
+
+
+def test_sorteio_sobre_os_elegiveis_nao_depende_da_ordem_de_coleta():
+    repos = [f"org/repo{i:03d}" for i in range(80)]
+    direto = elegiveis_sorteio(amostra(*repos))
+    invertido = elegiveis_sorteio(amostra(*reversed(repos)))
+    sorteio = direto.sample(n=60, random_state=42)["repo"].tolist()
+    assert invertido.sample(n=60, random_state=42)["repo"].tolist() == sorteio
+
+
+def test_dicionario_documenta_as_colunas_dos_elegiveis():
+    assert colunas_do_dicionario("data/elegiveis_sorteio.csv") == COLUNAS_ELEGIVEIS
