@@ -9,17 +9,28 @@ por build) fariam um `compare` por unidade. `max_compares` limita os compares de
 variante; acima dele o lead time (b) usa uma amostra sistemática espalhada pela janela
 (`metricas.variantes.pares_para_compare`), a frequência continua exata e as unidades
 puladas são contadas em `teto_compare_<variante>`.
+
+Erro persistente na variante `tag` (5xx depois das tentativas do cliente e do
+fatiamento da listagem de commits, ou falha de rede): a variante `tag` daquele
+repositório fica ausente (colunas vazias), `erro_tags = 1` e um WARNING vai para o
+log. O repositório continua válido e a variante `release+pre` não é afetada.
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 from metricas.variantes import lead_time_b_variante, pares_para_compare, separar_janela
 from pipeline.etapa_releases import semanas_da_janela
+from pipeline.http import GitHubError
 from pipeline.releases import fetch_commits, fetch_releases
 from pipeline.tags import tags_com_data
 
+log = logging.getLogger(__name__)
+
 MAX_COMPARES_PADRAO = 100
+COLUNAS_TAG = ["n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
+               "n_lead_negativos_tag", "teto_compare_tag"]
 
 
 def _variante(client, full_name: str, unidades: list[dict], janela, max_compares, sufixo: str,
@@ -49,14 +60,20 @@ def coletar_variantes(client, meta: dict, janela: tuple[datetime, datetime],
 
     Chaves: `n_releases_pre`, `deploy_freq_week_pre`, `lead_time_b_days_pre`, `compare_404_pre`,
     `n_lead_negativos_pre`, `teto_compare_pre`, `n_tags`, `deploy_freq_week_tag`,
-    `lead_time_b_days_tag`, `compare_404_tag`, `n_lead_negativos_tag`, `teto_compare_tag`.
+    `lead_time_b_days_tag`, `compare_404_tag`, `n_lead_negativos_tag`, `teto_compare_tag` e `erro_tags` (0/1; 1 = variante `tag` ausente
+    por erro persistente da API, com as colunas `_tag` e `n_tags` vazias).
     """
     start, end = janela
     full_name = meta["full_name"]
     releases = fetch_releases(client, full_name, start, end, base_inclui_pre=True)
     com_pre = [{"nome": r["tag_name"], "data": r["published_at"]} for r in releases]
-    tags = tags_com_data(client, full_name, meta["default_branch"], start, end)
-    return {
-        **_variante(client, full_name, com_pre, janela, max_compares, "pre", "n_releases_pre"),
-        **_variante(client, full_name, tags, janela, max_compares, "tag", "n_tags"),
-    }
+    pre = _variante(client, full_name, com_pre, janela, max_compares, "pre", "n_releases_pre")
+    try:
+        tags = tags_com_data(client, full_name, meta["default_branch"], start, end)
+        tag = {**_variante(client, full_name, tags, janela, max_compares, "tag", "n_tags"), "erro_tags": 0}
+    except GitHubError as erro:
+        if erro.status is not None and erro.status < 500:
+            raise  # 4xx (ex.: permissão) não é falha transitória: não mascarar
+        log.warning("%s: variante tag ausente por erro persistente da API (%s)", full_name, erro)
+        tag = {**dict.fromkeys(COLUNAS_TAG), "erro_tags": 1}
+    return {**pre, **tag}
