@@ -6,10 +6,13 @@ import re
 import pandas as pd
 import pytest
 
+import pipeline.__main__ as pipeline_main
 from pipeline.consolidar import (
-    COLUNAS_DERIVADAS, COLUNAS_ELEGIVEIS, COLUNAS_FINAIS, derivar_colunas, elegiveis_sorteio, validar,
+    COLUNAS_DERIVADAS, COLUNAS_ELEGIVEIS, COLUNAS_FINAIS, DatasetInvalido, consolidar, derivar_colunas,
+    elegiveis_sorteio, validar,
 )
-from pipeline.orquestrador import COLUNAS
+from pipeline.consolidar import main as consolidar_main
+from pipeline.orquestrador import COLUNAS, COLUNAS_INTEIRAS, executar
 
 DICIONARIO = pathlib.Path(__file__).resolve().parents[1] / "data" / "DICIONARIO.md"
 
@@ -231,3 +234,122 @@ def test_sorteio_sobre_os_elegiveis_nao_depende_da_ordem_de_coleta():
 
 def test_dicionario_documenta_as_colunas_dos_elegiveis():
     assert colunas_do_dicionario("data/elegiveis_sorteio.csv") == COLUNAS_ELEGIVEIS
+
+
+# --- consolidar (E/S), comando e integração com `python -m pipeline` ---
+
+CFG = {"window": {"start": "2025-10-01", "end": "2026-09-30"}}
+
+
+def gravar_saidas(pasta: pathlib.Path, metricas: pd.DataFrame, funil: pd.DataFrame | None = None) -> None:
+    """Simula as saídas do orquestrador em `pasta`."""
+    metricas.to_csv(pasta / "metricas.csv", index=False)
+    (funil_de(len(metricas)) if funil is None else funil).to_csv(pasta / "funil.csv", index=False)
+
+
+def test_consolidar_grava_dataset_final_e_elegiveis(tmp_path):
+    gravar_saidas(tmp_path, dataset(linha(repo="b/b"), linha(repo="a/a", meses_no_teto="2026-01")))
+    final = consolidar(tmp_path, CFG)
+
+    salvo = pd.read_csv(tmp_path / "metricas.csv")
+    assert list(salvo.columns) == COLUNAS_FINAIS
+    assert list(salvo["repo"]) == ["b/b", "a/a"]  # mantém a ordem de coleta
+    assert salvo.loc[1, "n_meses_no_teto"] == 1
+    assert salvo.loc[0, "prop_censurados"] == pytest.approx(0.25)
+    assert list(final.columns) == COLUNAS_FINAIS
+    elegiveis = pd.read_csv(tmp_path / "elegiveis_sorteio.csv")
+    assert list(elegiveis["repo"]) == ["a/a", "b/b"]
+
+
+def test_consolidar_duas_vezes_gera_arquivos_identicos(tmp_path):
+    gravar_saidas(tmp_path, dataset(linha(), linha(repo="o/x", recovery_median_h=None, score_rec=None,
+                                                    dora_overall=None, n_episodes=0, n_censored=0,
+                                                    meses_no_teto="2025-12;2026-02", cfr_ci=1 / 3)))
+    consolidar(tmp_path, CFG)
+    primeira = (tmp_path / "metricas.csv").read_bytes(), (tmp_path / "elegiveis_sorteio.csv").read_bytes()
+    consolidar(tmp_path, CFG)
+    assert ((tmp_path / "metricas.csv").read_bytes(), (tmp_path / "elegiveis_sorteio.csv").read_bytes()) == primeira
+
+
+def test_consolidar_mantem_inteiros_sem_casas_decimais(tmp_path):
+    gravar_saidas(tmp_path, dataset(linha(), linha(repo="o/x", contributors=None, score_lead=None,
+                                                    lead_time_a_days=None, dora_overall=None)))
+    consolidar(tmp_path, CFG)
+    cabecalho, *linhas = (tmp_path / "metricas.csv").read_text(encoding="utf-8").splitlines()
+    for texto in linhas:
+        valores = dict(zip(cabecalho.split(","), texto.split(",")))
+        for coluna in COLUNAS_INTEIRAS + ["n_meses_no_teto"]:
+            assert "." not in valores[coluna], (coluna, valores[coluna])
+    assert dict(zip(cabecalho.split(","), linhas[1].split(",")))["contributors"] == ""
+
+
+def test_consolidar_dataset_invalido_levanta_e_nao_grava(tmp_path):
+    gravar_saidas(tmp_path, dataset(linha(), linha()))
+    antes = (tmp_path / "metricas.csv").read_bytes()
+    with pytest.raises(DatasetInvalido) as erro:
+        consolidar(tmp_path, CFG)
+    assert any("duplicad" in p for p in erro.value.problemas)
+    assert (tmp_path / "metricas.csv").read_bytes() == antes
+    assert not (tmp_path / "elegiveis_sorteio.csv").exists()
+
+
+def test_consolidar_csv_sem_as_variantes_aponta_as_colunas_ausentes(tmp_path):
+    gravar_saidas(tmp_path, dataset().drop(columns=["n_tags", "teto_compare_tag"]))
+    with pytest.raises(DatasetInvalido, match="n_tags"):
+        consolidar(tmp_path, CFG)
+
+
+def test_consolidar_saida_real_do_orquestrador(tmp_path):
+    from tests.test_orquestrador import FakeClient, config, repo
+    executar(FakeClient({"o/sem-actions": repo(actions=False), "o/valido": repo()}), config(), tmp_path)
+    final = consolidar(tmp_path, config())
+    assert list(final["repo"]) == ["o/valido"]
+    assert list(pd.read_csv(tmp_path / "elegiveis_sorteio.csv")["repo"]) == ["o/valido"]
+
+
+def escrever_config(pasta: pathlib.Path) -> pathlib.Path:
+    arquivo = pasta / "config.yaml"
+    arquivo.write_text('window:\n  start: "2025-10-01"\n  end: "2026-09-30"\n', encoding="utf-8")
+    return arquivo
+
+
+def test_comando_consolidar_devolve_zero_e_resume(tmp_path, capsys):
+    gravar_saidas(tmp_path, dataset())
+    assert consolidar_main(["--config", str(escrever_config(tmp_path)), "--dados", str(tmp_path)]) == 0
+    saida = capsys.readouterr().out
+    assert "1 repositórios" in saida and "elegiveis_sorteio.csv" in saida
+
+
+def test_comando_consolidar_invalido_devolve_dois_e_lista_problemas(tmp_path, capsys):
+    gravar_saidas(tmp_path, dataset(linha(cfr_ci=2.0)))
+    assert consolidar_main(["--config", str(escrever_config(tmp_path)), "--dados", str(tmp_path)]) == 2
+    assert "cfr_ci" in capsys.readouterr().err
+
+
+def test_comando_consolidar_sem_csv_devolve_um(tmp_path, capsys):
+    assert consolidar_main(["--config", str(escrever_config(tmp_path)), "--dados", str(tmp_path)]) == 1
+    assert "metricas.csv" in capsys.readouterr().err
+
+
+def executar_falso(metricas: pd.DataFrame):
+    def executar(client, cfg, saida):
+        gravar_saidas(pathlib.Path(saida), metricas)
+        return metricas, funil_de(len(metricas))
+    return executar
+
+
+def test_pipeline_consolida_ao_final(tmp_path, monkeypatch):
+    monkeypatch.setenv("GITHUB_TOKEN", "token-falso")
+    monkeypatch.setattr(pipeline_main, "SAIDA", tmp_path)
+    monkeypatch.setattr(pipeline_main, "executar", executar_falso(dataset()))
+    assert pipeline_main.main(["--config", str(escrever_config(tmp_path))]) == 0
+    assert list(pd.read_csv(tmp_path / "metricas.csv").columns) == COLUNAS_FINAIS
+    assert (tmp_path / "elegiveis_sorteio.csv").exists()
+
+
+def test_pipeline_com_dataset_invalido_devolve_dois(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("GITHUB_TOKEN", "token-falso")
+    monkeypatch.setattr(pipeline_main, "SAIDA", tmp_path)
+    monkeypatch.setattr(pipeline_main, "executar", executar_falso(dataset(linha(n_runs_validos=10))))
+    assert pipeline_main.main(["--config", str(escrever_config(tmp_path))]) == 2
+    assert "n_runs_validos" in capsys.readouterr().err
