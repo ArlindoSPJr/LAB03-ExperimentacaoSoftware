@@ -14,12 +14,15 @@ def _parse_date(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
-def fetch_releases(client, full_name: str, start: datetime, end: datetime) -> list[dict]:
+def fetch_releases(client, full_name: str, start: datetime, end: datetime,
+                   base_inclui_pre: bool = False) -> list[dict]:
     """Releases publicadas (draft=false) em [start, end], ordenadas por published_at.
 
     Pré-releases são mantidas com `prerelease=True` (variantes da RQ07). Inclui também
     a release não-pré-release imediatamente anterior à janela (decisão 5 de
-    docs/ISSUES.md), que serve só de base para o `compare` do lead time.
+    docs/ISSUES.md), que serve só de base para o `compare` do lead time. Com
+    `base_inclui_pre=True` (variante `release+pre` da RQ07), a base é a última release
+    ou pré-release anterior à janela: a unidade anterior do mesmo tipo.
     """
     releases = []
     for item in client.paginate(f"/repos/{full_name}/releases"):
@@ -33,7 +36,8 @@ def fetch_releases(client, full_name: str, start: datetime, end: datetime) -> li
         })
     releases.sort(key=lambda r: r["published_at"])
     na_janela = [r for r in releases if start <= r["published_at"] <= end]
-    anteriores = [r for r in releases if r["published_at"] < start and not r["prerelease"]]
+    anteriores = [r for r in releases if r["published_at"] < start
+                  and (base_inclui_pre or not r["prerelease"])]
     return anteriores[-1:] + na_janela
 
 

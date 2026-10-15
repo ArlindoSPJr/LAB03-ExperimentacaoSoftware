@@ -165,3 +165,14 @@ def test_tag_com_caracteres_especiais_e_codificada():
     path = "/repos/octo/hello/compare/release/1.0%2Bbuild...release/1.1"
     client = FakeClient({path: []})
     assert fetch_commits(client, "octo/hello", "release/1.0+build", "release/1.1") == []
+
+
+def test_base_inclui_pre_usa_a_ultima_unidade_antes_da_janela():
+    client = FakeClient({PATH: [
+        rel("v1.0", "2025-08-01T00:00:00Z"),
+        rel("v2.0-rc1", "2025-09-20T00:00:00Z", prerelease=True),
+        rel("v2.0", "2025-11-01T00:00:00Z"),
+    ]})
+    com_pre = fetch_releases(client, "octo/hello", START, END, base_inclui_pre=True)
+    assert tags(com_pre) == ["v2.0-rc1", "v2.0"]
+    assert tags(fetch_releases(client, "octo/hello", START, END)) == ["v1.0", "v2.0"]
