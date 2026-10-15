@@ -38,10 +38,12 @@ def runs_validos(n=50, falha_a_cada=10):
     return runs
 
 
-def repo(actions=True, disponivel=True, releases=None, runs=None):
+def repo(actions=True, disponivel=True, releases=None, runs=None, tags=None):
+    """`tags`: lista de (nome, data ISO do commit apontado), todas no default branch."""
     return {"actions": actions, "disponivel": disponivel,
             "releases": releases_validas() if releases is None else releases,
-            "runs": runs_validos() if runs is None else runs}
+            "runs": runs_validos() if runs is None else runs,
+            "tags": tags or []}
 
 
 class FakeClient:
@@ -80,9 +82,15 @@ class FakeClient:
         r = self.repos[nome]
         if resto == ["releases"]:
             return r["releases"]
+        if resto == ["tags"]:
+            return [{"name": nome_tag, "commit": {"sha": nome_tag}} for nome_tag, _ in r["tags"]]
+        if resto == ["commits"]:
+            return [{"sha": nome_tag, "commit": {"author": {"date": data}, "message": "x"}}
+                    for nome_tag, data in r["tags"]]
         if resto[0] == "compare":
             head = resto[1].split("...")[1]
-            publicada = next(x["published_at"] for x in r["releases"] if x["tag_name"] == head)
+            publicada = next((x["published_at"] for x in r["releases"] if x["tag_name"] == head),
+                             dict(r["tags"]).get(head))
             data = iso(datetime.fromisoformat(publicada.replace("Z", "+00:00")) - timedelta(days=2))
             return [{"sha": head, "commit": {"author": {"date": data}, "message": "feat: x"}}]
         if resto == ["actions", "runs"]:
@@ -228,3 +236,51 @@ def test_loga_o_inicio_de_cada_repositorio(tmp_path, caplog):
     assert "o/b: iniciando (candidato 2 de 2; válidos 0/10)" in mensagens
     assert mensagens.index("o/a: iniciando (candidato 1 de 2; válidos 0/10)") < mensagens.index(
         "o/a: descartado em 'com GitHub Actions'")
+
+
+COLUNAS_VARIANTES = [
+    "n_releases_pre", "deploy_freq_week_pre", "lead_time_b_days_pre", "compare_404_pre",
+    "n_lead_negativos_pre", "teto_compare_pre",
+    "n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
+    "n_lead_negativos_tag", "teto_compare_tag",
+]
+
+
+def test_colunas_das_variantes_depois_de_meses_no_teto():
+    inicio = COLUNAS.index("meses_no_teto") + 1
+    assert COLUNAS[inicio:inicio + len(COLUNAS_VARIANTES)] == COLUNAS_VARIANTES
+
+
+def test_linha_do_repositorio_valido_tem_as_variantes(tmp_path):
+    tags = [(f"t{i}", iso(utc(2025, 11, 1) + timedelta(days=7 * i))) for i in range(4)]
+    metricas, _ = executar(FakeClient({"o/valido": repo(tags=tags)}), config(), tmp_path)
+    linha = metricas.iloc[0]
+    assert linha["n_releases_pre"] == 5
+    assert linha["deploy_freq_week_pre"] == pytest.approx(linha["deploy_freq_week"])
+    assert linha["lead_time_b_days_pre"] == pytest.approx(2)
+    assert linha["n_tags"] == 4
+    assert linha["lead_time_b_days_tag"] == pytest.approx(2)
+    assert linha["teto_compare_tag"] == 0
+    salvo = pd.read_csv(tmp_path / "metricas.csv")
+    assert salvo.loc[0, "n_tags"] == 4
+
+
+def test_repositorio_sem_tags_tem_frequencia_de_tag_zero(tmp_path):
+    metricas, _ = executar(FakeClient({"o/valido": repo()}), config(), tmp_path)
+    linha = metricas.iloc[0]
+    assert linha["n_tags"] == 0
+    assert linha["deploy_freq_week_tag"] == 0
+    assert pd.isna(linha["lead_time_b_days_tag"])
+
+
+def test_descartados_nao_coletam_variantes(tmp_path):
+    client = FakeClient({"o/poucas": repo(releases=releases_validas(3))})
+    executar(client, config(), tmp_path)
+    assert not any(c.endswith("/tags") for c in client.calls)
+
+
+def test_max_compares_variante_do_config_limita_os_compares(tmp_path):
+    tags = [(f"t{i}", iso(utc(2025, 11, 1) + timedelta(days=7 * i))) for i in range(4)]
+    metricas, _ = executar(FakeClient({"o/valido": repo(tags=tags)}),
+                           config(max_compares_variante=1), tmp_path)
+    assert metricas.iloc[0]["teto_compare_tag"] == 2  # 3 pares, 1 comparado
