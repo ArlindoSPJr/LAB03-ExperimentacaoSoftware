@@ -52,6 +52,91 @@ def _inclusao(metricas: pd.DataFrame) -> list[str]:
     return problemas
 
 
+NAO_NEGATIVAS = [
+    "deploy_freq_week", "lead_time_a_days", "lead_time_b_days", "recovery_median_h",
+    "deploy_freq_week_pre", "lead_time_b_days_pre", "deploy_freq_week_tag", "lead_time_b_days_tag",
+]
+NOTAS = ["score_freq", "score_lead", "score_cfr", "score_rec"]
+CATEGORIAS_DORA = {"Elite", "High", "Medium", "Low"}
+METRICAS_DORA = ["deploy_freq_week", "lead_time_a_days", "cfr_ci", "recovery_median_h"]
+# (frequência, contagem de unidades na janela, teto de compares ou None)
+UNIDADES = [
+    ("deploy_freq_week", "n_releases", None),
+    ("deploy_freq_week_pre", "n_releases_pre", "teto_compare_pre"),
+    ("deploy_freq_week_tag", "n_tags", "teto_compare_tag"),
+]
+TOLERANCIA_FREQ = 1e-6
+
+
+def _num(metricas: pd.DataFrame, coluna: str) -> pd.Series:
+    return pd.to_numeric(metricas[coluna], errors="coerce")
+
+
+def _faixas(metricas: pd.DataFrame) -> list[str]:
+    """Faixas válidas; valores ausentes (métrica não calculável) não são checados."""
+    problemas = []
+    regras = [("cfr_ci", lambda s: (s < 0) | (s > 1), "fora de [0, 1]")]
+    regras += [(c, lambda s: s < 0, "negativo") for c in NAO_NEGATIVAS]
+    regras += [(c, lambda s: ~s.isin([1, 2, 3, 4]) & s.notna(), "fora de 1..4") for c in NOTAS]
+    for coluna, fora, descricao in regras:
+        mascara = fora(_num(metricas, coluna))
+        if mascara.fillna(False).any():
+            problemas.append(f"{coluna} {descricao}: {_repos_onde(metricas, mascara)}")
+    acima = _num(metricas, "n_censored") > _num(metricas, "n_episodes")
+    if acima.any():
+        problemas.append(f"n_censored > n_episodes: {_repos_onde(metricas, acima)}")
+    return problemas
+
+
+def _classificacao(metricas: pd.DataFrame) -> list[str]:
+    problemas = []
+    categoria = metricas["dora_overall"]
+    preenchida = categoria.notna() & (categoria.astype(str).str.strip() != "")
+    desconhecida = preenchida & ~categoria.isin(CATEGORIAS_DORA)
+    if desconhecida.any():
+        problemas.append(f"dora_overall fora de {sorted(CATEGORIAS_DORA)}: {_repos_onde(metricas, desconhecida)}")
+    completas = metricas[METRICAS_DORA].notna().all(axis=1)
+    incoerente = preenchida != completas
+    if incoerente.any():
+        problemas.append("dora_overall deve ser vazio se e somente se alguma das 4 métricas for ausente: "
+                         + _repos_onde(metricas, incoerente))
+    return problemas
+
+
+def _unidades(metricas: pd.DataFrame, semanas: float) -> list[str]:
+    problemas = []
+    abaixo = _num(metricas, "n_releases_pre") < _num(metricas, "n_releases")
+    if abaixo.any():
+        problemas.append(f"n_releases_pre < n_releases (release+pre inclui as releases): "
+                         f"{_repos_onde(metricas, abaixo)}")
+    for freq, contagem, teto in UNIDADES:
+        esperada = _num(metricas, contagem) / semanas
+        incoerente = (_num(metricas, freq) - esperada).abs() > TOLERANCIA_FREQ
+        if incoerente.any():
+            problemas.append(f"{freq} != {contagem} ÷ semanas da janela ({semanas:.4f}): "
+                             f"{_repos_onde(metricas, incoerente)}")
+        if teto is not None:
+            excede = _num(metricas, teto) > _num(metricas, contagem)
+            if excede.any():
+                problemas.append(f"{teto} > {contagem}: {_repos_onde(metricas, excede)}")
+    return problemas
+
+
+def _funil(funil: pd.DataFrame, n_linhas: int) -> list[str]:
+    problemas = []
+    restantes = [int(r) for r in funil["restantes"]]
+    descartados = [int(d) for d in funil["descartados"]]
+    esperados = [0] + [a - b for a, b in zip(restantes[:-1], restantes[1:])]
+    if descartados != esperados:
+        problemas.append("funil: descartados != restantes da etapa anterior − restantes da etapa")
+    if any(b > a for a, b in zip(restantes[:-1], restantes[1:])):
+        problemas.append("funil: restantes cresce entre etapas")
+    if list(funil["etapa"])[-1:] != ["amostra final"] or restantes[-1] != n_linhas:
+        problemas.append(f"funil: 'amostra final' deve ser a última etapa e ter {n_linhas} repositórios "
+                         f"(as linhas de metricas.csv)")
+    return problemas
+
+
 def validar(metricas: pd.DataFrame, funil: pd.DataFrame, semanas: float) -> list[str]:
     """Lista os problemas de integridade do dataset (vazia se ele é válido).
 
@@ -61,4 +146,5 @@ def validar(metricas: pd.DataFrame, funil: pd.DataFrame, semanas: float) -> list
     problemas = _estrutura(metricas)
     if problemas:
         return problemas
-    return _repos(metricas) + _inclusao(metricas)
+    return (_repos(metricas) + _inclusao(metricas) + _faixas(metricas) + _classificacao(metricas)
+            + _unidades(metricas, semanas) + _funil(funil, len(metricas)))
