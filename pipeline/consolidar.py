@@ -11,6 +11,15 @@ import pandas as pd
 from pipeline.orquestrador import COLUNAS, MIN_RELEASES, MIN_RUNS_VALIDOS
 
 
+# Colunas calculadas na consolidação, acrescentadas depois das colunas do orquestrador.
+# PONTO DE EXTENSÃO (S02-O3.5, #36): acrescente aqui `cfr_entrega`, `rework_rate` e
+# `tipo_projeto`, calcule-as em `derivar_colunas` (dados externos, como
+# rotulos/consenso.csv, entram por `extras`) e documente-as em data/DICIONARIO.md
+# na mesma ordem (tests/test_consolidar.py confere o dicionário).
+COLUNAS_DERIVADAS = ["prop_censurados", "n_meses_no_teto"]
+COLUNAS_FINAIS = COLUNAS + COLUNAS_DERIVADAS
+
+
 class DatasetInvalido(ValueError):
     """O dataset não passou na validação; `problemas` lista cada falha encontrada."""
 
@@ -148,3 +157,24 @@ def validar(metricas: pd.DataFrame, funil: pd.DataFrame, semanas: float) -> list
         return problemas
     return (_repos(metricas) + _inclusao(metricas) + _faixas(metricas) + _classificacao(metricas)
             + _unidades(metricas, semanas) + _funil(funil, len(metricas)))
+
+
+def _contar_meses(meses) -> int:
+    if not isinstance(meses, str) or not meses.strip():
+        return 0
+    return len([m for m in meses.split(";") if m.strip()])
+
+
+def derivar_colunas(metricas: pd.DataFrame, extras: dict | None = None) -> pd.DataFrame:
+    """Cópia de `metricas` com as COLUNAS_DERIVADAS recalculadas, na ordem COLUNAS_FINAIS.
+
+    Idempotente: derivadas já presentes (consolidação anterior) são descartadas e
+    recalculadas. `extras` é reservado para dados externos ao CSV (ex.: o consenso
+    da validação manual, S02-O3.5); a S02-O1.3 não o usa.
+    """
+    df = metricas[COLUNAS].copy()
+    episodios = pd.to_numeric(df["n_episodes"], errors="coerce").astype("Float64")
+    censurados = pd.to_numeric(df["n_censored"], errors="coerce").astype("Float64")
+    df["prop_censurados"] = (censurados / episodios.where(episodios > 0)).astype(float)
+    df["n_meses_no_teto"] = df["meses_no_teto"].map(_contar_meses).astype("Int64")
+    return df[COLUNAS_FINAIS]
