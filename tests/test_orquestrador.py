@@ -72,6 +72,8 @@ class FakeClient:
                     "created_at": "2020-01-01T00:00:00Z", "default_branch": "main"}, {}
         if resto == ["contributors"]:
             return [{"login": "a"}], {}
+        if resto == ["commits"] and r.get("erro_commits"):  # listagem refinada página a página
+            raise GitHubError(500, path, "Server Error")
         raise AssertionError(f"endpoint inesperado: {path}")
 
     def paginate(self, path, params=None, item_key=None):
@@ -244,7 +246,7 @@ COLUNAS_VARIANTES = [
     "n_releases_pre", "deploy_freq_week_pre", "lead_time_b_days_pre", "compare_404_pre",
     "n_lead_negativos_pre", "teto_compare_pre",
     "n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
-    "n_lead_negativos_tag", "teto_compare_tag", "erro_tags",
+    "n_lead_negativos_tag", "teto_compare_tag", "commits_omitidos_tag", "erro_tags",
 ]
 
 
@@ -303,3 +305,4 @@ def test_erro_persistente_nas_tags_mantem_repositorio_valido_com_variante_tag_va
 def test_repositorio_sem_erro_tem_erro_tags_zero(tmp_path):
     metricas, _ = executar(FakeClient({"o/valido": repo()}), config(), tmp_path)
     assert metricas.iloc[0]["erro_tags"] == 0
+    assert metricas.iloc[0]["commits_omitidos_tag"] == 0
