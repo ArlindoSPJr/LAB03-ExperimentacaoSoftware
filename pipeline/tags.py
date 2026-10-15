@@ -17,13 +17,14 @@ decrescente, e não por data. Por isso a janela não é cortada pela posição n
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from pipeline.http import NotFoundError
+from pipeline.http import GitHubError, NotFoundError
 
 log = logging.getLogger(__name__)
 
 CANDIDATOS_BASE = 5
+MENOR_FATIA = timedelta(days=1)
 
 
 def _parse_date(value: str) -> datetime:
@@ -40,11 +41,65 @@ def fetch_tags(client, full_name: str) -> list[dict]:
             for item in client.paginate(f"/repos/{full_name}/tags")]
 
 
-def datas_commits_branch(client, full_name: str, branch: str, start: datetime, end: datetime) -> dict[str, datetime]:
-    """SHA -> `commit.author.date` dos commits do `branch` listados para a janela."""
+def _erro_de_servidor(erro: GitHubError) -> bool:
+    """5xx persistente (já esgotou as tentativas do cliente)."""
+    return erro.status is not None and erro.status >= 500
+
+
+def _listar_commits(client, full_name: str, branch: str, start: datetime, end: datetime) -> dict[str, datetime]:
     params = {"sha": branch, "since": _iso(start), "until": _iso(end)}
     return {item["sha"]: _parse_date(item["commit"]["author"]["date"])
             for item in client.paginate(f"/repos/{full_name}/commits", params)}
+
+
+def fatias_mensais(start: datetime, end: datetime) -> list[tuple[datetime, datetime]]:
+    """[start, end] em meses de calendário contíguos; cada fatia termina 1 s antes da seguinte."""
+    fatias = []
+    inicio = start
+    while inicio <= end:
+        proximo = (inicio.replace(day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(days=32)).replace(day=1)
+        fim = min(proximo - timedelta(seconds=1), end)
+        fatias.append((inicio, fim))
+        inicio = proximo
+    return fatias
+
+
+def _listar_fatiado(client, full_name: str, branch: str, start: datetime, end: datetime,
+                    menor_fatia: timedelta) -> dict[str, datetime]:
+    """Lista [start, end]; em 5xx persistente divide a fatia ao meio até `menor_fatia`."""
+    try:
+        return _listar_commits(client, full_name, branch, start, end)
+    except GitHubError as erro:
+        if not _erro_de_servidor(erro) or end - start <= menor_fatia:
+            raise
+    meio = start + (end - start) / 2
+    meio = meio.replace(microsecond=0)
+    log.warning("%s: HTTP 5xx nos commits de %s a %s; dividindo a fatia ao meio", full_name, _iso(start), _iso(end))
+    return {**_listar_fatiado(client, full_name, branch, start, meio, menor_fatia),
+            **_listar_fatiado(client, full_name, branch, meio + timedelta(seconds=1), end, menor_fatia)}
+
+
+def datas_commits_branch(client, full_name: str, branch: str, start: datetime, end: datetime,
+                         menor_fatia: timedelta = MENOR_FATIA) -> dict[str, datetime]:
+    """SHA -> `commit.author.date` dos commits do `branch` listados para a janela.
+
+    Primeiro tenta a consulta única da janela (mesmas URLs e chaves de cache de sempre).
+    Se a API devolver 5xx persistente (comum em páginas profundas de repositórios com
+    milhares de commits), refaz por mês e, em mês que ainda falhe, divide a fatia ao
+    meio até `menor_fatia`; os resultados são unidos por SHA (sem duplicatas). Se nem
+    a menor fatia funcionar, o `GitHubError` é propagado ao chamador.
+    """
+    try:
+        return _listar_commits(client, full_name, branch, start, end)
+    except GitHubError as erro:
+        if not _erro_de_servidor(erro):
+            raise
+        log.warning("%s: HTTP %s na listagem de commits da janela (%s); refazendo por mês",
+                    full_name, erro.status, erro.url)
+    datas: dict[str, datetime] = {}
+    for inicio, fim in fatias_mensais(start, end):
+        datas.update(_listar_fatiado(client, full_name, branch, inicio, fim, menor_fatia))
+    return datas
 
 
 def data_do_commit(client, full_name: str, sha: str) -> datetime | None:
