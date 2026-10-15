@@ -18,6 +18,7 @@ from pipeline.orquestrador import COLUNAS, MIN_RELEASES, MIN_RUNS_VALIDOS
 # na mesma ordem (tests/test_consolidar.py confere o dicionário).
 COLUNAS_DERIVADAS = ["prop_censurados", "n_meses_no_teto"]
 COLUNAS_FINAIS = COLUNAS + COLUNAS_DERIVADAS
+COLUNAS_ELEGIVEIS = ["repo", "url_releases", "n_releases"]
 
 
 class DatasetInvalido(ValueError):
@@ -178,3 +179,19 @@ def derivar_colunas(metricas: pd.DataFrame, extras: dict | None = None) -> pd.Da
     df["prop_censurados"] = (censurados / episodios.where(episodios > 0)).astype(float)
     df["n_meses_no_teto"] = df["meses_no_teto"].map(_contar_meses).astype("Int64")
     return df[COLUNAS_FINAIS]
+
+
+def elegiveis_sorteio(metricas: pd.DataFrame) -> pd.DataFrame:
+    """Repositórios elegíveis ao sorteio da amostra-ouro (enunciado §6.1, S02-O2.2).
+
+    Toda a amostra final é elegível (o enunciado sorteia "da amostra final" e todos
+    têm ≥ 5 releases na janela, o que permite sortear 5 releases por repositório).
+    A ordem alfabética (sem diferenciar maiúsculas) faz `df.sample(n=60, random_state=42)`
+    sobre este arquivo independer da ordem de coleta e das colunas do dataset.
+    """
+    df = pd.DataFrame({
+        "repo": metricas["repo"],
+        "url_releases": "https://github.com/" + metricas["repo"].astype(str) + "/releases",
+        "n_releases": pd.to_numeric(metricas["n_releases"]).astype("Int64"),
+    })
+    return df.sort_values("repo", key=lambda s: s.str.lower(), kind="stable").reset_index(drop=True)
