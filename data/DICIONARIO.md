@@ -38,6 +38,7 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 | `compare_404_tag` | inteiro | tags | Tags ignoradas no lead time porque o `compare` retornou 404 |
 | `n_lead_negativos_tag` | inteiro | commits | Commits com `commit.author.date` posterior à data da tag, descartados do lead time |
 | `teto_compare_tag` | inteiro | tags | Tags sem `compare` porque o teto `max_compares_variante` foi atingido (amostra sistemática de pares; a contagem `n_tags` continua completa). 0 = teto não aplicado |
+| `erro_tags` | inteiro (0/1) | indicador | 1 = variante `tag` ausente: a API devolveu erro persistente (HTTP 5xx depois das tentativas com backoff, ou falha de rede) mesmo após refazer a listagem `GET /repos/{owner}/{repo}/commits` da janela fatiada por mês e subdividida ao meio até fatias de 1 dia; `n_tags` e as colunas `_tag` ficam vazias, o repositório continua na amostra e o caso vai para o log (WARNING). 0 = variante coletada normalmente |
 | `score_freq` | inteiro | nota 1–4 | Nota DORA da frequência: ≥ 7/sem = 4; ≥ 1/sem = 3; ≥ 1/mês = 2; senão 1 |
 | `score_lead` | inteiro | nota 1–4 | Nota DORA do lead time (a): < 1 dia = 4; < 7 dias = 3; < 30 dias = 2; senão 1 |
 | `score_cfr` | inteiro | nota 1–4 | Nota DORA do CFR (a): ≤ 15% = 4; ≤ 30% = 3; ≤ 45% = 2; senão 1 |
