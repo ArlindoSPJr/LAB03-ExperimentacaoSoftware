@@ -57,3 +57,13 @@ Convenções:
 | `restantes` | inteiro | repositórios | Repositórios que passaram pela etapa |
 | `descartados` | inteiro | repositórios | `restantes` da etapa anterior − `restantes` desta etapa (0 na primeira) |
 | `motivo` | texto | — | Motivo do descarte nesta etapa (vazio se ninguém foi descartado). Em `processados`, os descartados são os candidatos que nem foram processados porque a amostra já tinha `sample_size` repositórios válidos |
+
+## `data/elegiveis_sorteio.csv` — repositórios elegíveis ao sorteio da amostra-ouro
+
+Gerado pela consolidação. Critério: **toda a amostra final** é elegível (enunciado §6.1: "sortear 60 repositórios da amostra final"); todos têm ≥ 5 releases na janela, o que permite sortear 5 releases por repositório. Linhas em ordem alfabética de `repo` (sem diferenciar maiúsculas), para que o sorteio `pd.read_csv("data/elegiveis_sorteio.csv").sample(n=60, random_state=42)` (S02-O2.2) não dependa da ordem de coleta nem das colunas acrescentadas depois ao dataset.
+
+| Coluna | Tipo | Unidade | Fórmula / origem |
+|---|---|---|---|
+| `repo` | texto | — | `repo` de `data/metricas.csv` (`owner/nome`) |
+| `url_releases` | texto | URL | `https://github.com/{repo}/releases`, página das releases para a rotulagem |
+| `n_releases` | inteiro | releases | `n_releases` de `data/metricas.csv` (releases não-pré-release na janela) |
