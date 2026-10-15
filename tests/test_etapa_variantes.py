@@ -182,3 +182,18 @@ def test_erro_de_permissao_nas_tags_nao_e_mascarado():
     client = FakeClient({f"{R}/tags": GitHubError(403, "x", "Forbidden")})
     with pytest.raises(GitHubError):
         coletar_variantes(client, META, JANELA)
+
+
+def test_commits_omitidos_da_listagem_vao_para_commits_omitidos_tag(monkeypatch):
+    import pipeline.etapa_variantes as etapa
+    monkeypatch.setattr(etapa, "coletar_tags", lambda *a, **k: ([], 3))
+    resultado = coletar_variantes(FakeClient({}), META, JANELA)
+    assert resultado["commits_omitidos_tag"] == 3
+    assert resultado["erro_tags"] == 0
+    assert resultado["n_tags"] == 0
+
+
+def test_sem_omissoes_commits_omitidos_tag_zero_e_vazio_quando_variante_ausente():
+    assert coletar_variantes(FakeClient({f"{R}/tags": []}), META, JANELA)["commits_omitidos_tag"] == 0
+    client = FakeClient({f"{R}/tags": [tag("v1", "s1")], f"{R}/commits": GitHubError(500, "x", "")})
+    assert coletar_variantes(client, META, JANELA)["commits_omitidos_tag"] is None
