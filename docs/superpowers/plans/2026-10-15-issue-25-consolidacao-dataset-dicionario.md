@@ -84,4 +84,11 @@ def main(argv: list[str] | None = None) -> int                 # python -m pipel
 - [ ] Implementar `pipeline/consolidar.py:main`, `if __name__ == "__main__"` e a chamada em `pipeline/__main__.py`; README (seção Saídas + janela); commit.
 
 ### Task 6: Verificação
-- [ ] `pytest --cov=metricas --cov-report=term-missing` verde, metricas ≥ 80%.
+- [x] `pytest --cov=metricas --cov-report=term-missing` verde, metricas ≥ 80%.
+
+## Registro da execução (2026-10-15)
+- Tasks 1–5 executadas em TDD; 312 testes verdes, `metricas` 100%, `pipeline/consolidar.py` 99% (só o `sys.exit` do `__main__`).
+- Desvio: `validar` também acusa `n_releases`/`n_runs_validos` **vazios** (antes passavam silenciosamente pelo critério de inclusão); teste `test_contagem_do_criterio_vazia_e_problema`.
+- README também foi alterado (seções Janela, Saídas e Consolidação), por pedido do dono da Issue.
+- Conferência sem rede: `data/metricas.csv` da S02 (300 repos, ainda sem as colunas das variantes) é recusado com a lista das 12 colunas ausentes; com as variantes simuladas, os 300 repositórios passam em todas as demais checagens.
+- Os dados finais (com as variantes, coleta da #24 em andamento) são gerados com `python -m pipeline.consolidar --config config.yaml` e commitados neste mesmo PR pelo dono da Issue.
