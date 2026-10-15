@@ -6,9 +6,18 @@ na ordem do dicionário (`data/DICIONARIO.md`).
 """
 from __future__ import annotations
 
+import argparse
+import pathlib
+import sys
+
 import pandas as pd
 
-from pipeline.orquestrador import COLUNAS, MIN_RELEASES, MIN_RUNS_VALIDOS
+from pipeline.etapa_releases import semanas_da_janela
+from pipeline.orquestrador import (
+    COLUNAS, COLUNAS_INTEIRAS, MIN_RELEASES, MIN_RUNS_VALIDOS, carregar_config, janela_da_config,
+)
+
+COLUNAS_TEXTO = ["repo", "language", "meses_no_teto", "dora_overall"]
 
 
 # Colunas calculadas na consolidação, acrescentadas depois das colunas do orquestrador.
@@ -195,3 +204,57 @@ def elegiveis_sorteio(metricas: pd.DataFrame) -> pd.DataFrame:
         "n_releases": pd.to_numeric(metricas["n_releases"]).astype("Int64"),
     })
     return df.sort_values("repo", key=lambda s: s.str.lower(), kind="stable").reset_index(drop=True)
+
+
+def _ler_metricas(arquivo: pathlib.Path) -> pd.DataFrame:
+    # round_trip: os decimais relidos são idênticos aos gravados (consolidação idempotente)
+    return pd.read_csv(arquivo, float_precision="round_trip",
+                       dtype={c: "string" for c in COLUNAS_TEXTO}).astype({c: object for c in COLUNAS_TEXTO})
+
+
+def consolidar(dados: pathlib.Path, cfg: dict) -> pd.DataFrame:
+    """Valida `dados/metricas.csv` + `dados/funil.csv` e grava o dataset final.
+
+    Regrava `dados/metricas.csv` com COLUNAS_FINAIS e grava `dados/elegiveis_sorteio.csv`.
+    Levanta `DatasetInvalido` (sem gravar nada) se a validação encontrar problemas.
+    Não chama a API: a janela vem de `cfg` só para conferir as frequências.
+    """
+    dados = pathlib.Path(dados)
+    metricas = _ler_metricas(dados / "metricas.csv")
+    funil = pd.read_csv(dados / "funil.csv")
+    problemas = validar(metricas, funil, semanas_da_janela(*janela_da_config(cfg)))
+    if problemas:
+        raise DatasetInvalido(problemas)
+
+    final = derivar_colunas(metricas)
+    final[COLUNAS_INTEIRAS] = final[COLUNAS_INTEIRAS].apply(pd.to_numeric).astype("Int64")
+    final.to_csv(dados / "metricas.csv", index=False)
+    elegiveis_sorteio(final).to_csv(dados / "elegiveis_sorteio.csv", index=False)
+    return final
+
+
+def main(argv: list[str] | None = None) -> int:
+    """python -m pipeline.consolidar --config config.yaml [--dados data] (sem token, sem rede)."""
+    parser = argparse.ArgumentParser(prog="python -m pipeline.consolidar",
+                                     description="Valida e consolida o dataset final (sem chamar a API).")
+    parser.add_argument("--config", default="config.yaml", help="arquivo de configuração (padrão: config.yaml)")
+    parser.add_argument("--dados", default="data", help="pasta com metricas.csv e funil.csv (padrão: data)")
+    args = parser.parse_args(argv)
+
+    dados = pathlib.Path(args.dados)
+    try:
+        final = consolidar(dados, carregar_config(args.config))
+    except FileNotFoundError as erro:
+        print(f"erro: arquivo não encontrado: {erro.filename}. Rode antes `python -m pipeline`.",
+              file=sys.stderr)
+        return 1
+    except DatasetInvalido as erro:
+        print(f"erro: {erro}", file=sys.stderr)
+        return 2
+    print(f"{len(final)} repositórios consolidados em {dados / 'metricas.csv'}; "
+          f"elegíveis ao sorteio em {dados / 'elegiveis_sorteio.csv'}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
