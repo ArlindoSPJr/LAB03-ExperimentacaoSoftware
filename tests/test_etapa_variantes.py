@@ -5,7 +5,7 @@ import pytest
 
 from pipeline.etapa_releases import semanas_da_janela
 from pipeline.etapa_variantes import MAX_COMPARES_PADRAO, coletar_variantes
-from pipeline.http import NotFoundError
+from pipeline.http import GitHubError, NotFoundError
 
 START = datetime(2025, 10, 1, tzinfo=timezone.utc)
 END = datetime(2026, 9, 30, 23, 59, 59, tzinfo=timezone.utc)
@@ -140,3 +140,60 @@ def test_teto_de_compares_amostra_e_conta_unidades_puladas():
 
 def test_teto_padrao():
     assert MAX_COMPARES_PADRAO == 100
+
+
+# --------------------------------------------------------------------------- erro persistente na variante tag (#81)
+COLUNAS_TAG = ["n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
+               "n_lead_negativos_tag", "teto_compare_tag"]
+
+
+def test_variante_tag_sem_erro_tem_erro_tags_zero():
+    assert coletar_variantes(FakeClient({f"{R}/tags": []}), META, JANELA)["erro_tags"] == 0
+
+
+@pytest.mark.parametrize("erro", [GitHubError(500, "https://x/commits?page=152", "Server Error"),
+                                  GitHubError(None, "https://x/commits", "erro de rede")])
+def test_5xx_persistente_nas_tags_deixa_variante_tag_ausente_e_registra(erro, caplog):
+    client = FakeClient({
+        f"{R}/releases": [rel("v1.0", "2025-11-01T00:00:00Z"), rel("v1.1", "2025-12-01T00:00:00Z")],
+        f"{R}/tags": [tag("v1.1", "s1")],
+        f"{R}/commits": erro,
+    })
+    with caplog.at_level("WARNING", logger="pipeline.etapa_variantes"):
+        resultado = coletar_variantes(client, META, JANELA)
+    assert resultado["erro_tags"] == 1
+    assert all(resultado[c] is None for c in COLUNAS_TAG)
+    assert resultado["n_releases_pre"] == 2  # a outra variante não é afetada
+    assert any("variante tag ausente" in r.getMessage() for r in caplog.records)
+
+
+def test_5xx_persistente_no_compare_de_tags_tambem_deixa_variante_ausente():
+    client = FakeClient({
+        f"{R}/tags": [tag("v1.1", "s1"), tag("v1.0", "s0")],
+        f"{R}/commits": [commit("s1", "2026-03-15T00:00:00Z"), commit("s0", "2026-03-01T00:00:00Z")],
+        compare("v1.0", "v1.1"): GitHubError(502, "x", "Bad Gateway"),
+    })
+    resultado = coletar_variantes(client, META, JANELA)
+    assert resultado["erro_tags"] == 1
+    assert resultado["n_tags"] is None
+
+
+def test_erro_de_permissao_nas_tags_nao_e_mascarado():
+    client = FakeClient({f"{R}/tags": GitHubError(403, "x", "Forbidden")})
+    with pytest.raises(GitHubError):
+        coletar_variantes(client, META, JANELA)
+
+
+def test_commits_omitidos_da_listagem_vao_para_commits_omitidos_tag(monkeypatch):
+    import pipeline.etapa_variantes as etapa
+    monkeypatch.setattr(etapa, "coletar_tags", lambda *a, **k: ([], 3))
+    resultado = coletar_variantes(FakeClient({}), META, JANELA)
+    assert resultado["commits_omitidos_tag"] == 3
+    assert resultado["erro_tags"] == 0
+    assert resultado["n_tags"] == 0
+
+
+def test_sem_omissoes_commits_omitidos_tag_zero_e_vazio_quando_variante_ausente():
+    assert coletar_variantes(FakeClient({f"{R}/tags": []}), META, JANELA)["commits_omitidos_tag"] == 0
+    client = FakeClient({f"{R}/tags": [tag("v1", "s1")], f"{R}/commits": GitHubError(500, "x", "")})
+    assert coletar_variantes(client, META, JANELA)["commits_omitidos_tag"] is None
