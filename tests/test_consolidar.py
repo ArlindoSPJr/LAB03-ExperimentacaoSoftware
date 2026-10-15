@@ -1,9 +1,15 @@
 """Consolidação do dataset (S02-O1.3): validação, colunas derivadas e elegíveis ao sorteio."""
+import math
+import pathlib
+import re
+
 import pandas as pd
 import pytest
 
-from pipeline.consolidar import validar
+from pipeline.consolidar import COLUNAS_DERIVADAS, COLUNAS_FINAIS, derivar_colunas, validar
 from pipeline.orquestrador import COLUNAS
+
+DICIONARIO = pathlib.Path(__file__).resolve().parents[1] / "data" / "DICIONARIO.md"
 
 SEMANAS = 365 / 7  # janela 2025-10-01..2026-09-30
 
@@ -151,3 +157,45 @@ def test_funil_que_cresce_e_problema():
     restantes = list(funil["restantes"])
     funil["descartados"] = [0] + [a - b for a, b in zip(restantes[:-1], restantes[1:])]
     assert any("restantes" in p for p in problemas_de(dataset(), funil))
+
+
+def colunas_do_dicionario(arquivo: str) -> list[str]:
+    """Colunas da tabela de `arquivo` em data/DICIONARIO.md, na ordem em que aparecem."""
+    secao = DICIONARIO.read_text(encoding="utf-8").split(f"## `{arquivo}`")[1].split("\n## ")[0]
+    return re.findall(r"^\| `([^`]+)` \|", secao, flags=re.MULTILINE)
+
+
+def test_prop_censurados_e_a_fracao_de_episodios_censurados():
+    resultado = derivar_colunas(dataset(linha(n_episodes=4, n_censored=1)))
+    assert resultado.loc[0, "prop_censurados"] == pytest.approx(0.25)
+
+
+def test_sem_episodios_prop_censurados_fica_vazia():
+    resultado = derivar_colunas(dataset(linha(n_episodes=0, n_censored=0)))
+    assert math.isnan(resultado.loc[0, "prop_censurados"])
+
+
+@pytest.mark.parametrize("meses, esperado", [("2025-11;2026-01", 2), ("2026-03", 1), ("", 0), (None, 0)])
+def test_n_meses_no_teto_conta_os_meses(meses, esperado):
+    resultado = derivar_colunas(dataset(linha(meses_no_teto=meses)))
+    assert resultado.loc[0, "n_meses_no_teto"] == esperado
+
+
+def test_derivar_poe_as_colunas_na_ordem_final():
+    assert list(derivar_colunas(dataset()).columns) == COLUNAS_FINAIS
+    assert COLUNAS_FINAIS == COLUNAS + COLUNAS_DERIVADAS
+
+
+def test_derivar_duas_vezes_e_igual_a_derivar_uma():
+    uma = derivar_colunas(dataset(linha(), linha(repo="octo/world", n_episodes=0, n_censored=0)))
+    pd.testing.assert_frame_equal(derivar_colunas(uma), uma)
+
+
+def test_derivar_nao_altera_a_entrada():
+    entrada = dataset()
+    derivar_colunas(entrada)
+    assert list(entrada.columns) == COLUNAS
+
+
+def test_dicionario_documenta_todas_as_colunas_finais_na_ordem():
+    assert colunas_do_dicionario("data/metricas.csv") == COLUNAS_FINAIS
