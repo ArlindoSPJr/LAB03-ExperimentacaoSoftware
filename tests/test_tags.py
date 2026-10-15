@@ -7,6 +7,8 @@ from pipeline.http import GitHubError, NotFoundError
 from pipeline.tags import (
     CANDIDATOS_BASE,
     MENOR_FATIA,
+    coletar_tags,
+    listar_datas_commits,
     data_do_commit,
     datas_commits_branch,
     fetch_tags,
@@ -175,10 +177,11 @@ class FakeResponse:
 class CommitsSession:
     """Lista de commits paginada; `falha(since, until, page)` decide quando responder 500."""
 
-    def __init__(self, commits, falha=lambda since, until, page: False, per_page=2):
+    def __init__(self, commits, falha=lambda since, until, page: False, per_page=2, ruins=()):
         self.commits = sorted(commits, key=lambda c: c["commit"]["author"]["date"], reverse=True)
         self.falha = falha
         self.per_page = per_page
+        self.ruins = set(ruins)  # SHAs que a API não consegue servir: 500 em qualquer página que os contenha
         self.calls = []
         self.headers = {}
 
@@ -193,12 +196,16 @@ class CommitsSession:
         if self.falha(since, until, page):
             return FakeResponse(500, {"message": "Server Error"})
         selecionados = [c for c in self.commits if since <= _parse(c["commit"]["author"]["date"]) <= until]
-        inicio = (page - 1) * self.per_page
+        per_page = int(query["per_page"]) if "per_page" in (params or {}) and "page" in (params or {})             else self.per_page
+        inicio = (page - 1) * per_page
+        pagina = selecionados[inicio:inicio + per_page]
+        if any(c["sha"] in self.ruins for c in pagina):
+            return FakeResponse(500, {"message": "Server Error"})
         headers = {}
-        if inicio + self.per_page < len(selecionados):
+        if inicio + per_page < len(selecionados):
             proxima = urlencode({**{k: v for k, v in query.items() if k != "page"}, "page": page + 1})
             headers["Link"] = f'<https://api.github.com{partes.path}?{proxima}>; rel="next"'
-        return FakeResponse(200, selecionados[inicio:inicio + self.per_page], headers)
+        return FakeResponse(200, pagina, headers)
 
 
 def _parse(valor):
@@ -285,3 +292,35 @@ def test_erro_que_nao_e_5xx_nao_fatia(tmp_path):
         datas_commits_branch(cliente_real(tmp_path, session), "octo/hello", "main", START, END)
     assert erro.value.status == 422
     assert len(session.calls) == 1
+
+
+def muitos_commits_em_um_dia(n=250):
+    """n commits em 2026-09-05 (um por minuto), mais rápidos que MENOR_FATIA."""
+    base = datetime(2026, 9, 5, 0, 0, tzinfo=timezone.utc)
+    return [commit_lista(f"d{i:03d}", (base + timedelta(minutes=i)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+            for i in range(n)]
+
+
+def test_commits_que_a_api_nao_serve_sao_pulados_e_contados_refinando_a_pagina(tmp_path):
+    commits = muitos_commits_em_um_dia()
+    ruins = {"d203", "d198", "d195"}  # como no hermes-agent: 3 commits vizinhos
+    session = CommitsSession(commits, per_page=100, ruins=ruins)
+    datas, omitidos = listar_datas_commits(cliente_real(tmp_path, session), "octo/hello", "main", START, END)
+    assert omitidos == 3
+    assert datas == {c["sha"]: _parse(c["commit"]["author"]["date"]) for c in commits if c["sha"] not in ruins}
+    # páginas refinadas: per_page 10 e depois 1 só onde ainda falha
+    assert {c.get("per_page") for c in session.calls} >= {"100", "10", "1"}
+    assert sum(1 for c in session.calls if c.get("per_page") == "1") <= 30
+
+
+def test_datas_commits_branch_devolve_so_as_datas(tmp_path):
+    session = CommitsSession(muitos_commits_em_um_dia(30), per_page=100, ruins={"d010"})
+    datas = datas_commits_branch(cliente_real(tmp_path, session), "octo/hello", "main", START, END)
+    assert len(datas) == 29 and "d010" not in datas
+
+
+def test_coletar_tags_devolve_commits_omitidos():
+    client = FakeClient({TAGS: [tag("v1", "a")], COMMITS: [commit_lista("a", "2026-01-02T03:04:05Z")]})
+    unidades, omitidos = coletar_tags(client, "octo/hello", "main", START, END)
+    assert unidades == [{"nome": "v1", "data": utc(2026, 1, 2, 3, 4, 5)}]
+    assert omitidos == 0
