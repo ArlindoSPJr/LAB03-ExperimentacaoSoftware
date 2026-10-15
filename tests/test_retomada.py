@@ -46,6 +46,8 @@ class SessaoFake:
             return Resposta({"workflow_runs": self.api.paginate(path, params)})
         if resto and resto[0] == "compare":
             return Resposta({"commits": self.api.paginate(path, params)})
+        if resto in (["tags"], ["commits"]):
+            return Resposta(self.api.paginate(path, params))
         if resto == ["releases"]:
             itens = self.api.paginate(path, params)
             if "page=2" in query:
@@ -60,7 +62,7 @@ def api_fake():
         "o/sem-actions": repo(actions=False),
         "o/poucas": repo(releases=releases_validas(3)),
         "o/a": repo(),
-        "o/b": repo(),
+        "o/b": repo(tags=[("t0", "2025-11-03T00:00:00Z"), ("t1", "2025-12-01T00:00:00Z")]),
     })
 
 
