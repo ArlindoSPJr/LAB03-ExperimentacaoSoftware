@@ -1,8 +1,10 @@
-"""Orquestrador do pipeline: seleção → Actions → metadados → releases → runs → critério → CSV.
+"""Orquestrador do pipeline: seleção → Actions → metadados → releases → runs → critério → variantes → CSV.
 
 Candidatos vêm da busca (já embaralhados, decisão 2 de docs/ISSUES.md) ou da lista
 fixa `repos` do config. São processados em ordem até `sample_size` repositórios
 válidos (≥ 5 releases e ≥ 50 runs válidos na janela). Cada descarte entra no funil.
+As variantes da RQ07 (`release+pre` e `tag`) só são coletadas para os repositórios
+válidos e não mudam o funil.
 """
 from __future__ import annotations
 
@@ -16,6 +18,7 @@ import yaml
 from metricas.classificacao import classificar_repositorio
 from pipeline.etapa_releases import coletar_releases_e_lead_time
 from pipeline.etapa_runs import coletar_runs_e_metricas
+from pipeline.etapa_variantes import MAX_COMPARES_PADRAO, coletar_variantes
 from pipeline.funil import Funnel
 from pipeline.http import NotFoundError
 from pipeline.metadados import collect_metadata
@@ -31,11 +34,17 @@ COLUNAS = [
     "n_releases", "n_runs_validos", "deploy_freq_week", "lead_time_a_days", "lead_time_b_days",
     "cfr_ci", "recovery_median_h", "n_episodes", "n_censored", "n_falhas_iniciais",
     "n_lead_negativos", "compare_404", "meses_no_teto",
+    "n_releases_pre", "deploy_freq_week_pre", "lead_time_b_days_pre", "compare_404_pre",
+    "n_lead_negativos_pre", "teto_compare_pre",
+    "n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
+    "n_lead_negativos_tag", "teto_compare_tag",
     "score_freq", "score_lead", "score_cfr", "score_rec", "dora_overall",
 ]
 COLUNAS_INTEIRAS = [
     "stars", "contributors", "age_days", "n_releases", "n_runs_validos", "n_episodes",
     "n_censored", "n_falhas_iniciais", "n_lead_negativos", "compare_404",
+    "n_releases_pre", "compare_404_pre", "n_lead_negativos_pre", "teto_compare_pre",
+    "n_tags", "compare_404_tag", "n_lead_negativos_tag", "teto_compare_tag",
     "score_freq", "score_lead", "score_cfr", "score_rec",
 ]
 
@@ -66,7 +75,14 @@ def janela_da_config(cfg: dict) -> tuple[datetime, datetime]:
             datetime.combine(fim, time(23, 59, 59), timezone.utc))
 
 
-def _processar(client, full_name: str, janela) -> tuple[dict | None, str]:
+def teto_da_config(cfg: dict) -> int | None:
+    """`max_compares_variante` do config (padrão 100); `null` desliga o teto."""
+    teto = cfg.get("max_compares_variante", MAX_COMPARES_PADRAO)
+    return None if teto is None else int(teto)
+
+
+def _processar(client, full_name: str, janela, max_compares: int | None = MAX_COMPARES_PADRAO
+               ) -> tuple[dict | None, str]:
     """(linha do CSV, "") se o repositório é válido; (None, etapa em que foi descartado) senão."""
     try:
         if not uses_actions(client, full_name):
@@ -86,6 +102,7 @@ def _processar(client, full_name: str, janela) -> tuple[dict | None, str]:
     ci = coletar_runs_e_metricas(client, meta, janela)
     if ci["n_runs_validos"] < MIN_RUNS_VALIDOS:
         return None, ETAPA_RUNS
+    variantes = coletar_variantes(client, meta, janela, max_compares)
 
     notas = classificar_repositorio(entrega["deploy_freq_week"], entrega["lead_time_a_days"],
                                     ci["cfr_ci"], ci["recovery_median_h"])
@@ -98,6 +115,7 @@ def _processar(client, full_name: str, janela) -> tuple[dict | None, str]:
         **entrega,
         **ci,
         "meses_no_teto": ";".join(ci["meses_no_teto"]),
+        **variantes,
         **notas,
     }
     return linha, ""
@@ -107,6 +125,7 @@ def executar(client, cfg: dict, saida: pathlib.Path) -> tuple[pd.DataFrame, pd.D
     """Roda o pipeline e grava `metricas.csv` e `funil.csv` em `saida`; devolve (metricas, funil)."""
     janela = janela_da_config(cfg)
     sample_size = int(cfg.get("sample_size", 100))
+    max_compares = teto_da_config(cfg)
     if cfg.get("repos"):
         candidatos, primeira_etapa = list(cfg["repos"]), "lista fornecida"
     else:
@@ -121,7 +140,7 @@ def executar(client, cfg: dict, saida: pathlib.Path) -> tuple[pd.DataFrame, pd.D
         processados += 1
         log.info("%s: iniciando (candidato %d de %d; válidos %d/%d)",
                  full_name, processados, len(candidatos), len(linhas), sample_size)
-        linha, etapa = _processar(client, full_name, janela)
+        linha, etapa = _processar(client, full_name, janela, max_compares)
         if linha is None:
             descartes[etapa] += 1
             log.info("%s: descartado em '%s'", full_name, etapa)

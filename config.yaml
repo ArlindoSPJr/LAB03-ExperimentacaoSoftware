@@ -25,6 +25,14 @@ star_ranges:
   - [5000, 20000]
   - [20000, 500000]
 
+# Teto de `compare` por variante da RQ07 (release+pre e tag), por repositório.
+# Repositórios com centenas/milhares de unidades na janela (ex.: uma tag por build)
+# fariam um compare por unidade. Acima do teto, o lead time (b) da variante usa uma
+# amostra sistemática de pares espalhados pela janela; a frequência continua exata e as
+# unidades sem compare são contadas em teto_compare_pre / teto_compare_tag.
+# Use null para desligar o teto.
+max_compares_variante: 100
+
 # Diretório do cache em disco (não versionado).
 cache_dir: cache
 
