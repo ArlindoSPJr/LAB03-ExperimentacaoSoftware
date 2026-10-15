@@ -26,6 +26,18 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 | `n_lead_negativos` | inteiro | commits | Commits com `commit.author.date` posterior à release (rebase/squash), descartados do lead time |
 | `compare_404` | inteiro | releases | Releases ignoradas no lead time porque `compare/{anterior}...{R}` retornou 404 |
 | `meses_no_teto` | texto | meses | Meses (`AAAA-MM`, separados por `;`) em que a consulta de runs devolveu 1.000 resultados, o teto da API: os runs desses meses podem estar incompletos. Vazio se nenhum |
+| `n_releases_pre` | inteiro | unidades | Variante `release+pre` (C2 da RQ07): releases **e** pré-releases (`draft=false`) com `published_at` dentro da janela |
+| `deploy_freq_week_pre` | decimal | unidades/semana | `n_releases_pre` ÷ semanas da janela (≈ 52,1) — RQ01 na variante C2 |
+| `lead_time_b_days_pre` | decimal | dias | RQ02 (b) na variante C2: `published_at(U)` − `commit.author.date` de cada commit de `compare/{anterior}...{U}`, em que a anterior é a release ou pré-release imediatamente anterior (mesmo fora da janela); mediana de todos os commits. Primeira unidade da história ignorada; amostra de pares se houver teto (ver `teto_compare_pre`) |
+| `compare_404_pre` | inteiro | unidades | Unidades `release+pre` ignoradas no lead time porque o `compare` retornou 404 |
+| `n_lead_negativos_pre` | inteiro | commits | Commits com `commit.author.date` posterior à unidade `release+pre`, descartados do lead time |
+| `teto_compare_pre` | inteiro | unidades | Unidades `release+pre` sem `compare` porque o teto `max_compares_variante` (config, padrão 100) foi atingido; o lead time usa uma amostra sistemática de pares espalhados pela janela. 0 = teto não aplicado |
+| `n_tags` | inteiro | tags | Variante `tag` (C3 da RQ07): tags de `GET /repos/{owner}/{repo}/tags` cujo commit apontado está no default branch (`GET /repos/{owner}/{repo}/commits?sha={default_branch}&since&until`) e tem `commit.author.date` dentro da janela. Tags não têm data: a data da tag é a do commit apontado |
+| `deploy_freq_week_tag` | decimal | tags/semana | `n_tags` ÷ semanas da janela (≈ 52,1) — RQ01 na variante C3 |
+| `lead_time_b_days_tag` | decimal | dias | RQ02 (b) na variante C3: data da tag − `commit.author.date` de cada commit de `compare/{tag anterior}...{tag}`; mediana de todos os commits. Tag anterior à janela (base) = entre as 5 tags seguintes na listagem da API (ordem de versão decrescente), a mais recente com data anterior à janela (data por `GET /repos/{owner}/{repo}/git/commits/{sha}`). Primeira tag sem base ignorada; tag sem commits novos não entra; amostra de pares se houver teto (ver `teto_compare_tag`) |
+| `compare_404_tag` | inteiro | tags | Tags ignoradas no lead time porque o `compare` retornou 404 |
+| `n_lead_negativos_tag` | inteiro | commits | Commits com `commit.author.date` posterior à data da tag, descartados do lead time |
+| `teto_compare_tag` | inteiro | tags | Tags sem `compare` porque o teto `max_compares_variante` foi atingido (amostra sistemática de pares; a contagem `n_tags` continua completa). 0 = teto não aplicado |
 | `score_freq` | inteiro | nota 1–4 | Nota DORA da frequência: ≥ 7/sem = 4; ≥ 1/sem = 3; ≥ 1/mês = 2; senão 1 |
 | `score_lead` | inteiro | nota 1–4 | Nota DORA do lead time (a): < 1 dia = 4; < 7 dias = 3; < 30 dias = 2; senão 1 |
 | `score_cfr` | inteiro | nota 1–4 | Nota DORA do CFR (a): ≤ 15% = 4; ≤ 30% = 3; ≤ 45% = 2; senão 1 |

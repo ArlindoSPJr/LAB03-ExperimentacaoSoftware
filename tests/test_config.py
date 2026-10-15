@@ -20,3 +20,8 @@ def test_janela_tem_12_meses_e_ja_terminou():
 def test_faixas_de_estrelas_validas():
     for lo, hi in carregar_config(CONFIG)["star_ranges"]:
         assert 0 <= lo <= hi
+
+
+def test_teto_de_compares_das_variantes_e_inteiro_positivo():
+    teto = carregar_config(CONFIG)["max_compares_variante"]
+    assert isinstance(teto, int) and teto > 0
