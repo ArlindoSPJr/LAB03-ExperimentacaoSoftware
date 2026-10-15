@@ -79,3 +79,75 @@ def test_abaixo_do_criterio_de_inclusao_e_problema(campo, valor):
     extra = {"deploy_freq_week": 4 / SEMANAS} if campo == "n_releases" else {}
     problemas = problemas_de(dataset(linha(**{campo: valor}, **extra)))
     assert any(campo in p and "octo/hello" in p for p in problemas)
+
+
+@pytest.mark.parametrize("campo, valor", [
+    ("cfr_ci", 1.2), ("cfr_ci", -0.1), ("lead_time_a_days", -1.0), ("lead_time_b_days", -0.5),
+    ("recovery_median_h", -2.0), ("lead_time_b_days_pre", -1.0), ("lead_time_b_days_tag", -1.0),
+    ("score_freq", 5), ("score_rec", 0),
+])
+def test_valor_fora_da_faixa_e_problema(campo, valor):
+    problemas = problemas_de(dataset(linha(**{campo: valor})))
+    assert any(campo in p and "octo/hello" in p for p in problemas)
+
+
+def test_metricas_ausentes_nao_sao_fora_da_faixa():
+    vazio = linha(lead_time_a_days=None, score_lead=None, dora_overall=None)
+    assert problemas_de(dataset(vazio)) == []
+
+
+def test_censurados_acima_dos_episodios_e_problema():
+    problemas = problemas_de(dataset(linha(n_episodes=1, n_censored=2)))
+    assert any("n_censored" in p for p in problemas)
+
+
+def test_categoria_dora_desconhecida_e_problema():
+    assert any("dora_overall" in p for p in problemas_de(dataset(linha(dora_overall="Top"))))
+
+
+def test_dora_overall_preenchido_com_metrica_ausente_e_problema():
+    problemas = problemas_de(dataset(linha(recovery_median_h=None)))
+    assert any("dora_overall" in p for p in problemas)
+
+
+def test_dora_overall_vazio_com_todas_as_metricas_e_problema():
+    problemas = problemas_de(dataset(linha(dora_overall=None)))
+    assert any("dora_overall" in p for p in problemas)
+
+
+def test_release_mais_pre_abaixo_das_releases_e_problema():
+    problemas = problemas_de(dataset(linha(n_releases_pre=4, deploy_freq_week_pre=4 / SEMANAS)))
+    assert any("n_releases_pre" in p for p in problemas)
+
+
+@pytest.mark.parametrize("teto, unidades", [("teto_compare_pre", "n_releases_pre"),
+                                            ("teto_compare_tag", "n_tags")])
+def test_teto_acima_das_unidades_e_problema(teto, unidades):
+    campos = {"n_releases_pre": 10, "deploy_freq_week_pre": 10 / SEMANAS, unidades: 10, teto: 11}
+    problemas = problemas_de(dataset(linha(**campos)))
+    assert any(teto in p for p in problemas)
+
+
+@pytest.mark.parametrize("freq", ["deploy_freq_week", "deploy_freq_week_pre", "deploy_freq_week_tag"])
+def test_frequencia_incoerente_com_a_contagem_e_problema(freq):
+    problemas = problemas_de(dataset(linha(**{freq: 99.0})))
+    assert any(freq in p for p in problemas)
+
+
+def test_funil_que_nao_fecha_com_a_amostra_e_problema():
+    problemas = problemas_de(dataset(), funil_de(2))
+    assert any("amostra final" in p for p in problemas)
+
+
+def test_funil_com_descartados_errados_e_problema():
+    funil = funil_de(1)
+    funil.loc[2, "descartados"] = 3
+    assert any("descartados" in p for p in problemas_de(dataset(), funil))
+
+
+def test_funil_que_cresce_e_problema():
+    funil = funil_de(1)
+    funil.loc[3, "restantes"] = 20
+    restantes = list(funil["restantes"])
+    funil["descartados"] = [0] + [a - b for a, b in zip(restantes[:-1], restantes[1:])]
+    assert any("restantes" in p for p in problemas_de(dataset(), funil))
