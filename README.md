@@ -31,7 +31,7 @@ python -m pipeline.consolidar --config config.yaml
 
 Opções: `--dados <pasta>` (padrão `data`). Códigos de saída: `0` sucesso; `1` falta `metricas.csv`/`funil.csv`; `2` dataset inválido (os problemas são listados e nada é regravado). A consolidação é idempotente: rodar de novo produz os mesmos arquivos.
 
-Checagens: colunas na ordem do dicionário; `repo` sem duplicatas; critério de inclusão (≥ 5 releases e ≥ 50 runs válidos); funil fechando com o número de linhas; CFR entre 0 e 1, tempos e frequências não negativos, notas de 1 a 4, `dora_overall` vazio só quando falta métrica; censurados ≤ episódios; release+pré ≥ releases; frequência de cada unidade = contagem ÷ semanas da janela.
+Checagens: colunas na ordem do dicionário; `repo` sem duplicatas; critério de inclusão (≥ 5 releases e ≥ 50 runs válidos); funil fechando com o número de linhas; CFR entre 0 e 1, tempos e frequências não negativos, notas de 1 a 4, `dora_overall` vazio só quando falta métrica; censurados ≤ episódios; release+pré ≥ releases; frequência de cada unidade = contagem ÷ semanas da janela; `erro_tags` 0 ou 1, com as colunas da variante tag todas vazias quando `erro_tags = 1` e as contagens dela (inclusive `commits_omitidos_tag`) preenchidas quando `erro_tags = 0`.
 
 O sorteio da validação manual usa `pd.read_csv("data/elegiveis_sorteio.csv").sample(n=60, random_state=42)`.
 
