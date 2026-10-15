@@ -202,3 +202,16 @@ def coletar_variantes(client, meta: dict, janela: tuple[datetime, datetime],
 
 - [ ] Rodar `python -m pipeline --config <scratchpad>/config.yaml` com `repos: [jasmine/jasmine, jeffbski/wait-on, nginx-proxy/nginx-proxy]`, `cache_dir` no scratchpad e `cwd` no scratchpad (a saída `data/` fica fora do repositório). Conferir as colunas novas e medir as chamadas por repo (contagem de arquivos novos no cache).
 - [ ] `pytest --cov=metricas --cov-report=term-missing` verde, cobertura ≥ 80%.
+
+---
+
+## Registro da execução (2026-10-15)
+
+- **Decisões tomadas durante a execução:**
+  - Testes de `tests/test_retomada.py`: a `SessaoFake` passou a responder `/tags` e `/commits`, e o repo `o/b` ganhou tags. Assim a retomada após `Ctrl+C` também cobre as chamadas novas.
+  - Tag-base: as até 5 candidatas são sempre consultadas (custo ≤ 5 chamadas por repo) e vence a mais recente antes da janela. Parar na primeira candidata pularia o caso de prefixos misturados na listagem.
+- **Execução real** (`repos:` = jasmine/jasmine, jeffbski/wait-on, nginx-proxy/nginx-proxy, Jackett/Jackett). Cache em camadas: leitura do `cache/` do repositório sem alterá-lo, escrita só no scratchpad, saída fora de `data/`. Resultado: 108 chamadas novas no total.
+  - jasmine: 10 releases, 16 release+pre, 18 tags. Lead time (b): 63,4 / 33,3 / 33,8 dias.
+  - wait-on: 13 / 14 / 15 unidades.
+  - nginx-proxy: 11 / 11 / 11 unidades; lead time (b) da tag ≈ o da release.
+  - Jackett: 368 unidades em cada variante. O teto foi aplicado (`teto_compare_pre = teto_compare_tag = 268`). Custou 35 páginas de tags, 25 páginas de commits e 5 `git/commits`; os compares já estavam em cache (mesmos pares da unidade release).
