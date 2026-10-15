@@ -17,6 +17,10 @@ API_URL = "https://api.github.com"
 TIMEOUT = 30
 SECONDARY_WAIT = 60  # s; recomendação do GitHub para limite secundário sem Retry-After
 _NEXT_RE = re.compile(r'<([^>]+)>\s*;\s*rel="next"')
+# Falhas de conexão transitórias: mesmo backoff exponencial dos 5xx.
+# ChunkedEncodingError ("IncompleteRead"/"Response ended prematurely") não herda de ConnectionError.
+_ERROS_TRANSITORIOS = (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError,
+                       requests.exceptions.Timeout)
 
 
 class GitHubError(Exception):
@@ -105,7 +109,7 @@ class GitHubClient:
             last = attempt == self.max_retries
             try:
                 resp = self.session.get(url, params=params, timeout=TIMEOUT)
-            except (requests.ConnectionError, requests.Timeout) as exc:
+            except _ERROS_TRANSITORIOS as exc:
                 if last:
                     raise GitHubError(None, url, f"erro de rede: {exc}") from exc
                 self.sleep(2 ** attempt)

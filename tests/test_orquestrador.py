@@ -1,4 +1,5 @@
 """Testes do orquestrador e do comando único. Cliente fake: nunca acessam a rede."""
+import logging
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
@@ -216,3 +217,14 @@ def test_main_sem_token_falha_com_mensagem(tmp_path, monkeypatch, capsys):
     arquivo.write_text('window:\n  start: "2025-10-01"\n  end: "2026-09-30"\n', encoding="utf-8")
     assert main(["--config", str(arquivo)]) != 0
     assert "GITHUB_TOKEN" in capsys.readouterr().err
+
+
+def test_loga_o_inicio_de_cada_repositorio(tmp_path, caplog):
+    client = FakeClient({"o/a": repo(actions=False), "o/b": repo()})
+    with caplog.at_level(logging.INFO, logger="pipeline.orquestrador"):
+        executar(client, config(repos=["o/a", "o/b"]), tmp_path)
+    mensagens = [r.getMessage() for r in caplog.records]
+    assert "o/a: iniciando (candidato 1 de 2; válidos 0/10)" in mensagens
+    assert "o/b: iniciando (candidato 2 de 2; válidos 0/10)" in mensagens
+    assert mensagens.index("o/a: iniciando (candidato 1 de 2; válidos 0/10)") < mensagens.index(
+        "o/a: descartado em 'com GitHub Actions'")

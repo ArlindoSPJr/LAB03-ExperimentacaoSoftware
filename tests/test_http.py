@@ -129,6 +129,29 @@ def test_erro_de_rede_usa_backoff(tmp_path):
     assert sleeps == [1]
 
 
+ERROS_TRANSITORIOS = [
+    requests.exceptions.ChunkedEncodingError("Connection broken: IncompleteRead"),
+    requests.exceptions.ConnectionError("caiu"),
+    requests.exceptions.Timeout("demorou"),
+]
+
+
+@pytest.mark.parametrize("erro", ERROS_TRANSITORIOS, ids=lambda e: type(e).__name__)
+def test_erro_de_conexao_transitorio_repete_com_backoff(tmp_path, erro):
+    client, sleeps = make_client(tmp_path, [erro, erro, erro, FakeResponse(200, {"ok": 1})])
+    assert client.get("/x")[0] == {"ok": 1}
+    assert sleeps == [1, 2, 4]
+
+
+@pytest.mark.parametrize("erro", ERROS_TRANSITORIOS, ids=lambda e: type(e).__name__)
+def test_erro_de_conexao_persistente_levanta_e_nao_cacheia(tmp_path, erro):
+    client, sleeps = make_client(tmp_path, [erro] * 6)
+    with pytest.raises(GitHubError):
+        client.get("/x")
+    assert sleeps == [1, 2, 4, 8, 16]
+    assert list((tmp_path / "cache").iterdir()) == []
+
+
 # --------------------------------------------------------------------------- rate limit
 
 NOW = 1_000_000.0
