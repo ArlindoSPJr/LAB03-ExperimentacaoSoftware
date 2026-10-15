@@ -13,6 +13,7 @@ import sys
 import pandas as pd
 
 from pipeline.etapa_releases import semanas_da_janela
+from pipeline.etapa_variantes import COLUNAS_TAG
 from pipeline.orquestrador import (
     COLUNAS, COLUNAS_INTEIRAS, MIN_RELEASES, MIN_RUNS_VALIDOS, carregar_config, janela_da_config,
 )
@@ -142,6 +143,32 @@ def _unidades(metricas: pd.DataFrame, semanas: float) -> list[str]:
     return problemas
 
 
+def _variante_tag(metricas: pd.DataFrame) -> list[str]:
+    """erro_tags (#81): 1 = variante tag ausente (todas as COLUNAS_TAG vazias); 0 = coletada.
+
+    Com erro_tags = 0 só `lead_time_b_days_tag` pode ser vazio (sem compare utilizável);
+    as contagens, inclusive `commits_omitidos_tag`, são obrigatórias. As regras de
+    frequência e teto de `_unidades` já ignoram valores vazios.
+    """
+    problemas = []
+    erro = _num(metricas, "erro_tags")
+    invalido = ~erro.isin([0, 1])
+    if invalido.any():
+        problemas.append(f"erro_tags vazio ou fora de {{0, 1}}: {_repos_onde(metricas, invalido)}")
+    for coluna in COLUNAS_TAG:
+        preenchida = metricas[coluna].notna()
+        com_erro = (erro == 1) & preenchida
+        if com_erro.any():
+            problemas.append(f"{coluna} preenchida com erro_tags = 1 (variante tag ausente): "
+                             f"{_repos_onde(metricas, com_erro)}")
+        if coluna != "lead_time_b_days_tag":
+            vazia = (erro == 0) & ~preenchida
+            if vazia.any():
+                problemas.append(f"{coluna} vazia com erro_tags = 0 (variante tag coletada): "
+                                 f"{_repos_onde(metricas, vazia)}")
+    return problemas
+
+
 def _funil(funil: pd.DataFrame, n_linhas: int) -> list[str]:
     problemas = []
     restantes = [int(r) for r in funil["restantes"]]
@@ -167,7 +194,7 @@ def validar(metricas: pd.DataFrame, funil: pd.DataFrame, semanas: float) -> list
     if problemas:
         return problemas
     return (_repos(metricas) + _inclusao(metricas) + _faixas(metricas) + _classificacao(metricas)
-            + _unidades(metricas, semanas) + _funil(funil, len(metricas)))
+            + _unidades(metricas, semanas) + _variante_tag(metricas) + _funil(funil, len(metricas)))
 
 
 def _contar_meses(meses) -> int:
