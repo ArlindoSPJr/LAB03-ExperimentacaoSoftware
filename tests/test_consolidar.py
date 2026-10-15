@@ -12,6 +12,7 @@ from pipeline.consolidar import (
     elegiveis_sorteio, validar,
 )
 from pipeline.consolidar import main as consolidar_main
+from pipeline.etapa_variantes import COLUNAS_TAG
 from pipeline.orquestrador import COLUNAS, COLUNAS_INTEIRAS, executar
 
 DICIONARIO = pathlib.Path(__file__).resolve().parents[1] / "data" / "DICIONARIO.md"
@@ -31,6 +32,7 @@ def linha(**kw) -> dict:
         "compare_404_pre": 0, "n_lead_negativos_pre": 0, "teto_compare_pre": 0,
         "n_tags": 10, "deploy_freq_week_tag": 10 / SEMANAS, "lead_time_b_days_tag": 3.0,
         "compare_404_tag": 0, "n_lead_negativos_tag": 0, "teto_compare_tag": 0,
+        "commits_omitidos_tag": 0, "erro_tags": 0,
         "score_freq": 1, "score_lead": 2, "score_cfr": 4, "score_rec": 3, "dora_overall": "Medium",
     }
     base.update(kw)
@@ -149,6 +151,46 @@ def test_teto_acima_das_unidades_e_problema(teto, unidades):
 def test_frequencia_incoerente_com_a_contagem_e_problema(freq):
     problemas = problemas_de(dataset(linha(**{freq: 99.0})))
     assert any(freq in p for p in problemas)
+
+
+def sem_tags(**kw) -> dict:
+    """Repositório com a variante tag ausente (5xx/rede persistente, #81)."""
+    return linha(**{**dict.fromkeys(COLUNAS_TAG), "erro_tags": 1, **kw})
+
+
+def test_variante_tag_ausente_por_erro_e_valida():
+    assert problemas_de(dataset(sem_tags())) == []
+
+
+@pytest.mark.parametrize("valor", [2, -1])
+def test_erro_tags_fora_de_zero_ou_um_e_problema(valor):
+    assert any("erro_tags" in p for p in problemas_de(dataset(linha(erro_tags=valor))))
+
+
+def test_erro_tags_vazio_e_problema():
+    assert any("erro_tags" in p for p in problemas_de(dataset(linha(erro_tags=None))))
+
+
+def test_commits_omitidos_vazio_sem_erro_de_tags_e_problema():
+    problemas = problemas_de(dataset(linha(commits_omitidos_tag=None)))
+    assert any("commits_omitidos_tag" in p and "octo/hello" in p for p in problemas)
+
+
+@pytest.mark.parametrize("coluna", [c for c in COLUNAS_TAG])
+def test_erro_de_tags_com_coluna_da_variante_preenchida_e_problema(coluna):
+    problemas = problemas_de(dataset(sem_tags(**{coluna: 0})))
+    assert any(coluna in p and "erro_tags" in p for p in problemas)
+
+
+@pytest.mark.parametrize("coluna", [c for c in COLUNAS_TAG if c != "lead_time_b_days_tag"])
+def test_contagem_da_variante_tag_vazia_sem_erro_e_problema(coluna):
+    problemas = problemas_de(dataset(linha(**{coluna: None})))
+    assert any(coluna in p for p in problemas)
+
+
+def test_lead_time_de_tag_vazio_sem_erro_e_valido():
+    # sem compare utilizável o lead time é ausente, mas a variante foi coletada
+    assert problemas_de(dataset(linha(lead_time_b_days_tag=None))) == []
 
 
 def test_funil_que_nao_fecha_com_a_amostra_e_problema():
