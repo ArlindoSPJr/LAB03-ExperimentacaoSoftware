@@ -8,6 +8,7 @@ import pathlib
 import sys
 
 from pipeline.cache import DiskCache
+from pipeline.consolidar import DatasetInvalido, consolidar
 from pipeline.http import GitHubClient
 from pipeline.orquestrador import carregar_config, executar
 
@@ -30,6 +31,12 @@ def main(argv: list[str] | None = None) -> int:
     metricas, funil = executar(client, cfg, SAIDA)
     print(funil.to_string(index=False))
     print(f"\n{len(metricas)} repositórios em {SAIDA / 'metricas.csv'}; funil em {SAIDA / 'funil.csv'}")
+    try:
+        consolidar(SAIDA, cfg)
+    except DatasetInvalido as erro:
+        print(f"erro na consolidação: {erro}", file=sys.stderr)
+        return 2
+    print(f"dataset consolidado; elegíveis ao sorteio em {SAIDA / 'elegiveis_sorteio.csv'}")
     return 0
 
 

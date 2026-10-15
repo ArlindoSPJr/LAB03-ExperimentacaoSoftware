@@ -1,8 +1,11 @@
 # Dicionário de dados
 
-Versão inicial (S01-D1), atualizada na S01-O3.4 com as colunas que o orquestrador (`pipeline/orquestrador.py`) realmente grava, na mesma ordem do CSV. Toda coluna nova dos CSVs finais deve ser adicionada aqui com nome, tipo, unidade e fórmula/origem.
+Versão inicial (S01-D1), atualizada na S01-O3.4 com as colunas que o orquestrador (`pipeline/orquestrador.py`) realmente grava e na S02-O1.3 com a consolidação (`pipeline/consolidar.py`). As tabelas seguem a ordem das colunas nos CSVs. Toda coluna nova dos CSVs finais deve ser adicionada aqui com nome, tipo, unidade e fórmula/origem (o teste `tests/test_consolidar.py` confere que a tabela de `data/metricas.csv` lista exatamente as colunas do dataset final, na mesma ordem).
 
-Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`window.start`, `window.end`); célula vazia = valor ausente (`None`).
+Convenções:
+- **Janela de observação:** 12 meses, de **2025-10-01 00:00:00 a 2026-09-30 23:59:59 UTC** (365 dias ≈ 52,14 semanas). O enunciado permite qualquer período de 12 meses; este foi escolhido pelo grupo e é o mesmo na S01 e na S02. As datas ficam em `config.yaml` (`window.start`, `window.end`).
+- Datas em UTC; só o default branch; célula vazia = valor ausente (`None`).
+- **Dataset final:** `data/metricas.csv` depois da consolidação. O orquestrador grava as colunas de `repo` a `dora_overall`; a consolidação (`python -m pipeline.consolidar`, também executada no fim de `python -m pipeline`) valida o arquivo e acrescenta as colunas derivadas do fim da tabela, sem chamar a API.
 
 ## `data/metricas.csv` — uma linha por repositório da amostra final
 
@@ -45,6 +48,8 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 | `score_cfr` | inteiro | nota 1–4 | Nota DORA do CFR (a): ≤ 15% = 4; ≤ 30% = 3; ≤ 45% = 2; senão 1 |
 | `score_rec` | inteiro | nota 1–4 | Nota DORA da recuperação: < 1 h = 4; < 24 h = 3; < 168 h = 2; senão 1 |
 | `dora_overall` | texto | categoria | Mediana das 4 notas arredondada para baixo: 4 Elite, 3 High, 2 Medium, 1 Low. Vazio se alguma métrica for ausente |
+| `prop_censurados` | decimal | fração 0–1 | Derivada na consolidação: `n_censored` ÷ `n_episodes` — proporção de episódios de recuperação censurados no repositório (RQ04). Vazio se `n_episodes` = 0 |
+| `n_meses_no_teto` | inteiro | meses | Derivada na consolidação: número de meses listados em `meses_no_teto` (0 se nenhum). Permite filtrar repositórios cujos runs podem estar incompletos |
 
 ## `data/funil.csv` — funil de seleção
 
@@ -54,3 +59,13 @@ Convenções: datas em UTC; janela de 12 meses definida em `config.yaml` (`windo
 | `restantes` | inteiro | repositórios | Repositórios que passaram pela etapa |
 | `descartados` | inteiro | repositórios | `restantes` da etapa anterior − `restantes` desta etapa (0 na primeira) |
 | `motivo` | texto | — | Motivo do descarte nesta etapa (vazio se ninguém foi descartado). Em `processados`, os descartados são os candidatos que nem foram processados porque a amostra já tinha `sample_size` repositórios válidos |
+
+## `data/elegiveis_sorteio.csv` — repositórios elegíveis ao sorteio da amostra-ouro
+
+Gerado pela consolidação. Critério: **toda a amostra final** é elegível (enunciado §6.1: "sortear 60 repositórios da amostra final"); todos têm ≥ 5 releases na janela, o que permite sortear 5 releases por repositório. Linhas em ordem alfabética de `repo` (sem diferenciar maiúsculas), para que o sorteio `pd.read_csv("data/elegiveis_sorteio.csv").sample(n=60, random_state=42)` (S02-O2.2) não dependa da ordem de coleta nem das colunas acrescentadas depois ao dataset.
+
+| Coluna | Tipo | Unidade | Fórmula / origem |
+|---|---|---|---|
+| `repo` | texto | — | `repo` de `data/metricas.csv` (`owner/nome`) |
+| `url_releases` | texto | URL | `https://github.com/{repo}/releases`, página das releases para a rotulagem |
+| `n_releases` | inteiro | releases | `n_releases` de `data/metricas.csv` (releases não-pré-release na janela) |
