@@ -65,9 +65,10 @@ def _repos_onde(metricas: pd.DataFrame, mascara: pd.Series) -> str:
 def _inclusao(metricas: pd.DataFrame) -> list[str]:
     problemas = []
     for coluna, minimo in (("n_releases", MIN_RELEASES), ("n_runs_validos", MIN_RUNS_VALIDOS)):
-        abaixo = pd.to_numeric(metricas[coluna]) < minimo
+        abaixo = ~(_num(metricas, coluna) >= minimo)  # vazio também não atende ao critério
         if abaixo.any():
-            problemas.append(f"{coluna} < {minimo} (critério de inclusão): {_repos_onde(metricas, abaixo)}")
+            problemas.append(f"{coluna} vazio ou < {minimo} (critério de inclusão): "
+                             f"{_repos_onde(metricas, abaixo)}")
     return problemas
 
 

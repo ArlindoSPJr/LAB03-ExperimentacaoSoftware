@@ -92,6 +92,12 @@ def test_abaixo_do_criterio_de_inclusao_e_problema(campo, valor):
     assert any(campo in p and "octo/hello" in p for p in problemas)
 
 
+@pytest.mark.parametrize("campo", ["n_releases", "n_runs_validos"])
+def test_contagem_do_criterio_vazia_e_problema(campo):
+    problemas = problemas_de(dataset(linha(**{campo: None})))
+    assert any(campo in p and "octo/hello" in p for p in problemas)
+
+
 @pytest.mark.parametrize("campo, valor", [
     ("cfr_ci", 1.2), ("cfr_ci", -0.1), ("lead_time_a_days", -1.0), ("lead_time_b_days", -0.5),
     ("recovery_median_h", -2.0), ("lead_time_b_days_pre", -1.0), ("lead_time_b_days_tag", -1.0),
