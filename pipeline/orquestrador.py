@@ -37,14 +37,14 @@ COLUNAS = [
     "n_releases_pre", "deploy_freq_week_pre", "lead_time_b_days_pre", "compare_404_pre",
     "n_lead_negativos_pre", "teto_compare_pre",
     "n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
-    "n_lead_negativos_tag", "teto_compare_tag",
+    "n_lead_negativos_tag", "teto_compare_tag", "erro_tags",
     "score_freq", "score_lead", "score_cfr", "score_rec", "dora_overall",
 ]
 COLUNAS_INTEIRAS = [
     "stars", "contributors", "age_days", "n_releases", "n_runs_validos", "n_episodes",
     "n_censored", "n_falhas_iniciais", "n_lead_negativos", "compare_404",
     "n_releases_pre", "compare_404_pre", "n_lead_negativos_pre", "teto_compare_pre",
-    "n_tags", "compare_404_tag", "n_lead_negativos_tag", "teto_compare_tag",
+    "n_tags", "compare_404_tag", "n_lead_negativos_tag", "teto_compare_tag", "erro_tags",
     "score_freq", "score_lead", "score_cfr", "score_rec",
 ]
 

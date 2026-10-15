@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from pipeline.__main__ import main
-from pipeline.http import NotFoundError
+from pipeline.http import GitHubError, NotFoundError
 from pipeline.orquestrador import COLUNAS, carregar_config, executar, janela_da_config
 
 JANEIRO = "2026-01-01..2026-01-31"
@@ -85,6 +85,8 @@ class FakeClient:
         if resto == ["tags"]:
             return [{"name": nome_tag, "commit": {"sha": nome_tag}} for nome_tag, _ in r["tags"]]
         if resto == ["commits"]:
+            if r.get("erro_commits"):
+                raise GitHubError(500, path, "Server Error")
             return [{"sha": nome_tag, "commit": {"author": {"date": data}, "message": "x"}}
                     for nome_tag, data in r["tags"]]
         if resto[0] == "compare":
@@ -242,7 +244,7 @@ COLUNAS_VARIANTES = [
     "n_releases_pre", "deploy_freq_week_pre", "lead_time_b_days_pre", "compare_404_pre",
     "n_lead_negativos_pre", "teto_compare_pre",
     "n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
-    "n_lead_negativos_tag", "teto_compare_tag",
+    "n_lead_negativos_tag", "teto_compare_tag", "erro_tags",
 ]
 
 
@@ -284,3 +286,20 @@ def test_max_compares_variante_do_config_limita_os_compares(tmp_path):
     metricas, _ = executar(FakeClient({"o/valido": repo(tags=tags)}),
                            config(max_compares_variante=1), tmp_path)
     assert metricas.iloc[0]["teto_compare_tag"] == 2  # 3 pares, 1 comparado
+
+
+def test_erro_persistente_nas_tags_mantem_repositorio_valido_com_variante_tag_vazia(tmp_path):
+    dados = {**repo(tags=[("t0", iso(utc(2025, 11, 1)))]), "erro_commits": True}
+    metricas, funil = executar(FakeClient({"o/valido": dados}), config(), tmp_path)
+    assert funil_dict(funil)["amostra final"] == (1, 0)
+    linha = metricas.iloc[0]
+    assert linha["erro_tags"] == 1
+    assert pd.isna(linha["n_tags"]) and pd.isna(linha["deploy_freq_week_tag"])
+    assert linha["n_releases_pre"] == 5
+    salvo = pd.read_csv(tmp_path / "metricas.csv")
+    assert salvo.loc[0, "erro_tags"] == 1 and pd.isna(salvo.loc[0, "n_tags"])
+
+
+def test_repositorio_sem_erro_tem_erro_tags_zero(tmp_path):
+    metricas, _ = executar(FakeClient({"o/valido": repo()}), config(), tmp_path)
+    assert metricas.iloc[0]["erro_tags"] == 0
