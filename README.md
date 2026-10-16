@@ -70,6 +70,7 @@ Como os testes são escritos:
 | Seleção de candidatos, metadados e funil | `tests/test_selecao.py`, `tests/test_metadados.py` |
 | Releases, commits entre releases e workflow runs | `tests/test_releases.py`, `tests/test_runs.py`, `tests/test_etapa_releases.py` |
 | Consolidação do dataset, colunas derivadas, elegíveis ao sorteio e conferência do dicionário | `tests/test_consolidar.py` |
+| Validação manual: kappa de Fleiss e consenso | `tests/test_concordancia.py` |
 | Métricas: lead time, CFR, recuperação e classificação DORA | `tests/test_lead_time.py`, `tests/test_classificacao.py`; `tests/test_cfr.py` e `tests/test_recuperacao.py` entram com as Issues S01-O3.1 e S01-O3.2 |
 
 **CI:** o workflow `.github/workflows/testes.yml` roda a suíte no GitHub Actions a cada push e pull request. Um PR só é mergeado com os testes verdes. A meta é **cobertura mínima de 80% do módulo `metricas`** (`--cov-fail-under=80`); enquanto as métricas da S01 não estão completas, o limite fica em 0 e sobe para 80 na Issue S01-O3.5.
