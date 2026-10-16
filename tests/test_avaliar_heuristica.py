@@ -48,9 +48,18 @@ def test_avaliar_casos_de_borda():
         chamadas.append((repo, base, head))
         return respostas[head]
 
-    out = avaliar(itens, mensagens)
+    out = avaliar(itens, mensagens, versao="v1")
     assert out["predicao"].tolist() == ["nao", "sim", "nao", "sim"]
     assert out["com_commits"].tolist() == [False, True, False, True]
-    assert (out["versao"] == HEURISTICA_VERSAO).all()
+    assert (out["versao"] == "v1").all()
     assert out["consenso"].tolist() == itens["corretiva"].tolist()
     assert ("o/r", "v1.0.0", "v1.1.0") in chamadas and len(chamadas) == 3
+
+    vigente = avaliar(itens, mensagens)
+    assert (vigente["versao"] == HEURISTICA_VERSAO).all()
+    assert vigente["predicao"].tolist() == ["nao", "nao", "nao", "sim"]
+
+
+def test_avaliar_versao_inexistente():
+    with pytest.raises(KeyError):
+        avaliar(pd.DataFrame(columns=["repo", "tag", "url_commits", "corretiva"]), None, versao="v99")
