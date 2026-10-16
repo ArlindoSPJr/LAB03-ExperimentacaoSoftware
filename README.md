@@ -37,6 +37,28 @@ O sorteio da validação manual usa `pd.read_csv("data/elegiveis_sorteio.csv").s
 
 As respostas da API ficam em cache em `cache/` (não versionado). Reexecutar o comando reaproveita o cache e continua de onde parou.
 
+## Validação manual (amostra-ouro)
+
+As planilhas de rotulagem são geradas por `validacao/gerar_planilhas.py` (usa o token e o cache, como o pipeline):
+
+```
+python -m validacao.gerar_planilhas --config config.yaml
+```
+
+- **Sorteio:** 60 repositórios de `data/elegiveis_sorteio.csv` com `df.sample(n=60, random_state=42)`; em cada um, 5 releases não-pré-release da janela sorteadas com a mesma semente (`SEMENTE = 42`) sobre as posições em ordem cronológica (com menos de 5, entram todas).
+- **Saída:** `rotulos/A.csv`, `rotulos/B.csv` e `rotulos/C.csv`, idênticos e em branco. O script nunca sobrescreve uma planilha existente (código de saída `2`). Nenhuma coluna traz a saída da heurística de release corretiva.
+- **Formato:** uma linha `nivel=repo` por repositório, seguida das linhas `nivel=release`. Colunas `url` (página do repositório ou da release) e `url_commits` (`compare` da release anterior até a sorteada) servem para ler as *release notes* e os commits.
+- **Como preencher** (cada avaliador só o seu arquivo, sem consultar os outros):
+
+| Coluna | Linhas | Valores aceitos |
+|---|---|---|
+| `tipo_projeto` | `repo` | `biblioteca/framework`, `aplicacao/servico`, `ferramenta CLI`, `outro` |
+| `entregas_reais` | `repo` | `sim`, `nao`, `incerto` |
+| `corretiva` | `release` | `sim`, `nao` |
+| `observacao` | qualquer | texto livre (opcional) |
+
+A concordância (kappa de Fleiss por dimensão) e o consenso por maioria simples, com os empates 1-1-1 marcados para reunião, ficam em `validacao/concordancia.py`.
+
 ## Testes
 
 Os testes usam [pytest](https://docs.pytest.org/) e ficam em `tests/`. A partir da raiz do repositório, com as dependências de `requirements.txt` instaladas:
@@ -70,7 +92,7 @@ Como os testes são escritos:
 | Seleção de candidatos, metadados e funil | `tests/test_selecao.py`, `tests/test_metadados.py` |
 | Releases, commits entre releases e workflow runs | `tests/test_releases.py`, `tests/test_runs.py`, `tests/test_etapa_releases.py` |
 | Consolidação do dataset, colunas derivadas, elegíveis ao sorteio e conferência do dicionário | `tests/test_consolidar.py` |
-| Validação manual: kappa de Fleiss e consenso | `tests/test_concordancia.py` |
+| Validação manual: kappa de Fleiss, consenso e planilhas de rotulagem | `tests/test_concordancia.py`, `tests/test_gerar_planilhas.py` |
 | Métricas: lead time, CFR, recuperação e classificação DORA | `tests/test_lead_time.py`, `tests/test_classificacao.py`; `tests/test_cfr.py` e `tests/test_recuperacao.py` entram com as Issues S01-O3.1 e S01-O3.2 |
 
 **CI:** o workflow `.github/workflows/testes.yml` roda a suíte no GitHub Actions a cada push e pull request. Um PR só é mergeado com os testes verdes. A meta é **cobertura mínima de 80% do módulo `metricas`** (`--cov-fail-under=80`); enquanto as métricas da S01 não estão completas, o limite fica em 0 e sobe para 80 na Issue S01-O3.5.
