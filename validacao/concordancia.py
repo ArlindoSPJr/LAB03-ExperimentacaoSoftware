@@ -48,14 +48,18 @@ def fleiss_kappa_dimensao(rotulos: pd.DataFrame, categorias: list[str]) -> float
         return float(fleiss_kappa(contagens, method="fleiss"))
 
 
-def consenso(rotulos: pd.DataFrame) -> pd.DataFrame:
+def consenso(rotulos: pd.DataFrame, categorias: list[str] | None = None) -> pd.DataFrame:
     """Rótulo de consenso por maioria simples, preservando o índice de `rotulos`.
+
+    Com `categorias`, os rótulos voltam à grafia do vocabulário (ex.: `ferramenta CLI`);
+    sem elas, ficam normalizados em minúsculas.
 
     Colunas: `consenso` (rótulo mais votado, ou NA sem maioria), `reuniao` (True no
     empate 1-1-1, decidido em reunião pelo protocolo de desempate) e `votos`
     (`A=sim; B=nao; C=sim`, para registrar a decisão).
     """
-    normalizados = rotulos.map(_normalizar)
+    grafia = {c.lower(): c for c in categorias or []}
+    normalizados = rotulos.map(lambda v: grafia.get(_normalizar(v), _normalizar(v)))
     linhas = []
     for _, item in normalizados.iterrows():
         contagem = Counter(v for v in item if v is not None).most_common()

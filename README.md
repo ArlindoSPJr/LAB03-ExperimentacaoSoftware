@@ -57,7 +57,14 @@ python -m validacao.gerar_planilhas --config config.yaml
 | `corretiva` | `release` | `sim`, `nao` |
 | `observacao` | qualquer | texto livre (opcional) |
 
-A concordância (kappa de Fleiss por dimensão) e o consenso por maioria simples, com os empates 1-1-1 marcados para reunião, ficam em `validacao/concordancia.py`.
+Depois que os três avaliadores preenchem as planilhas, o kappa e o consenso são calculados sem token e sem rede:
+
+```
+python -m validacao.consolidar
+```
+
+- **Saídas:** `rotulos/kappa.csv` (kappa de Fleiss, concordância observada e contagens por dimensão) e `rotulos/consenso.csv` (rótulo de consenso de cada item, com `origem_<dimensao>` = `unanime`/`maioria`/`reuniao`/`pendente` e os votos de cada avaliador).
+- **Desempate:** maioria simples; empates 1-1-1 são decididos em reunião e registrados em `rotulos/decisoes_reuniao.csv` (`nivel,repo,tag,dimensao,rotulo,justificativa`). Com empate sem decisão, o comando sai com código `2`. O protocolo e os resultados estão em `docs/PROTOCOLO_DESEMPATE.md`.
 
 ## Testes
 
@@ -92,7 +99,7 @@ Como os testes são escritos:
 | Seleção de candidatos, metadados e funil | `tests/test_selecao.py`, `tests/test_metadados.py` |
 | Releases, commits entre releases e workflow runs | `tests/test_releases.py`, `tests/test_runs.py`, `tests/test_etapa_releases.py` |
 | Consolidação do dataset, colunas derivadas, elegíveis ao sorteio e conferência do dicionário | `tests/test_consolidar.py` |
-| Validação manual: kappa de Fleiss, consenso e planilhas de rotulagem | `tests/test_concordancia.py`, `tests/test_gerar_planilhas.py` |
+| Validação manual: kappa de Fleiss, consenso, desempate e planilhas de rotulagem | `tests/test_concordancia.py`, `tests/test_consolidar_rotulos.py`, `tests/test_gerar_planilhas.py` |
 | Métricas: lead time, CFR, recuperação e classificação DORA | `tests/test_lead_time.py`, `tests/test_classificacao.py`; `tests/test_cfr.py` e `tests/test_recuperacao.py` entram com as Issues S01-O3.1 e S01-O3.2 |
 
 **CI:** o workflow `.github/workflows/testes.yml` roda a suíte no GitHub Actions a cada push e pull request. Um PR só é mergeado com os testes verdes. A meta é **cobertura mínima de 80% do módulo `metricas`** (`--cov-fail-under=80`); enquanto as métricas da S01 não estão completas, o limite fica em 0 e sobe para 80 na Issue S01-O3.5.

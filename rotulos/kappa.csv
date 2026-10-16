@@ -1,0 +1,4 @@
+dimensao,nivel,n_itens,kappa,concordancia_observada,n_unanimes,n_maioria,n_reuniao
+tipo_projeto,repo,60,0.9123,0.9444,55,5,0
+entregas_reais,repo,60,0.3829,0.9667,57,3,0
+corretiva,release,300,0.8596,0.9333,270,30,0

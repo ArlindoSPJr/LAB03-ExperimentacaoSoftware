@@ -90,3 +90,10 @@ def test_consenso_normaliza_e_preserva_o_indice():
 def test_consenso_registra_os_votos():
     resultado = consenso(tabela(["sim", "nao", "sim"]))
     assert resultado.loc[0, "votos"] == "A=sim; B=nao; C=sim"
+
+
+def test_consenso_com_categorias_devolve_a_grafia_do_vocabulario():
+    tipos = DIMENSOES["tipo_projeto"]
+    resultado = consenso(tabela(["ferramenta cli", "Ferramenta CLI", "outro"]), tipos)
+    assert resultado.loc[0, "consenso"] == "ferramenta CLI"
+    assert resultado.loc[0, "votos"] == "A=ferramenta CLI; B=ferramenta CLI; C=outro"

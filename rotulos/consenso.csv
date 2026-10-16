@@ -1,0 +1,361 @@
+nivel,repo,tag,url,tipo_projeto,origem_tipo_projeto,votos_tipo_projeto,entregas_reais,origem_entregas_reais,votos_entregas_reais,corretiva,origem_corretiva,votos_corretiva
+repo,BookStackApp/BookStack,,https://github.com/BookStackApp/BookStack,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,BookStackApp/BookStack,v25.12,https://github.com/BookStackApp/BookStack/releases/tag/v25.12,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,BookStackApp/BookStack,v25.12.7,https://github.com/BookStackApp/BookStack/releases/tag/v25.12.7,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,BookStackApp/BookStack,v25.12.9,https://github.com/BookStackApp/BookStack/releases/tag/v25.12.9,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,BookStackApp/BookStack,v26.05,https://github.com/BookStackApp/BookStack/releases/tag/v26.05,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,BookStackApp/BookStack,v26.05.5,https://github.com/BookStackApp/BookStack/releases/tag/v26.05.5,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,ChefKissInc/NootedRed,,https://github.com/ChefKissInc/NootedRed,outro,maioria,A=outro; B=outro; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,ChefKissInc/NootedRed,v0.8.0,https://github.com/ChefKissInc/NootedRed/releases/tag/v0.8.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ChefKissInc/NootedRed,v0.8.2,https://github.com/ChefKissInc/NootedRed/releases/tag/v0.8.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ChefKissInc/NootedRed,v0.8.5,https://github.com/ChefKissInc/NootedRed/releases/tag/v0.8.5,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ChefKissInc/NootedRed,v0.8.9,https://github.com/ChefKissInc/NootedRed/releases/tag/v0.8.9,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ChefKissInc/NootedRed,v0.8.10,https://github.com/ChefKissInc/NootedRed/releases/tag/v0.8.10,,,,,,,sim,maioria,A=nao; B=sim; C=sim
+repo,DayuanJiang/next-ai-draw-io,,https://github.com/DayuanJiang/next-ai-draw-io,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,DayuanJiang/next-ai-draw-io,v0.2.0,https://github.com/DayuanJiang/next-ai-draw-io/releases/tag/v0.2.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,DayuanJiang/next-ai-draw-io,v0.3.0,https://github.com/DayuanJiang/next-ai-draw-io/releases/tag/v0.3.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,DayuanJiang/next-ai-draw-io,v0.4.1,https://github.com/DayuanJiang/next-ai-draw-io/releases/tag/v0.4.1,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,DayuanJiang/next-ai-draw-io,v0.4.4,https://github.com/DayuanJiang/next-ai-draw-io/releases/tag/v0.4.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,DayuanJiang/next-ai-draw-io,v0.4.7,https://github.com/DayuanJiang/next-ai-draw-io/releases/tag/v0.4.7,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,Eugeny/tabby,,https://github.com/Eugeny/tabby,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,Eugeny/tabby,v1.0.228,https://github.com/Eugeny/tabby/releases/tag/v1.0.228,,,,,,,sim,maioria,A=nao; B=sim; C=sim
+release,Eugeny/tabby,v1.0.229,https://github.com/Eugeny/tabby/releases/tag/v1.0.229,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,Eugeny/tabby,v1.0.233,https://github.com/Eugeny/tabby/releases/tag/v1.0.233,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,Eugeny/tabby,v1.0.235,https://github.com/Eugeny/tabby/releases/tag/v1.0.235,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,Eugeny/tabby,v1.0.236,https://github.com/Eugeny/tabby/releases/tag/v1.0.236,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,EvoScientist/EvoScientist,,https://github.com/EvoScientist/EvoScientist,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,EvoScientist/EvoScientist,v0.1.3,https://github.com/EvoScientist/EvoScientist/releases/tag/v0.1.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,EvoScientist/EvoScientist,v0.1.6,https://github.com/EvoScientist/EvoScientist/releases/tag/v0.1.6,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,EvoScientist/EvoScientist,V0.2.6,https://github.com/EvoScientist/EvoScientist/releases/tag/V0.2.6,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,EvoScientist/EvoScientist,v0.2.10,https://github.com/EvoScientist/EvoScientist/releases/tag/v0.2.10,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,EvoScientist/EvoScientist,v0.3.4,https://github.com/EvoScientist/EvoScientist/releases/tag/v0.3.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,FluxML/Flux.jl,,https://github.com/FluxML/Flux.jl,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,FluxML/Flux.jl,v0.16.6,https://github.com/FluxML/Flux.jl/releases/tag/v0.16.6,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,FluxML/Flux.jl,v0.16.7,https://github.com/FluxML/Flux.jl/releases/tag/v0.16.7,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,FluxML/Flux.jl,v0.16.8,https://github.com/FluxML/Flux.jl/releases/tag/v0.16.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,FluxML/Flux.jl,v0.16.10,https://github.com/FluxML/Flux.jl/releases/tag/v0.16.10,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,FluxML/Flux.jl,v0.16.11,https://github.com/FluxML/Flux.jl/releases/tag/v0.16.11,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,HMBSbige/NatTypeTester,,https://github.com/HMBSbige/NatTypeTester,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,HMBSbige/NatTypeTester,10.0.1,https://github.com/HMBSbige/NatTypeTester/releases/tag/10.0.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,HMBSbige/NatTypeTester,10.0.2,https://github.com/HMBSbige/NatTypeTester/releases/tag/10.0.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,HMBSbige/NatTypeTester,10.0.3,https://github.com/HMBSbige/NatTypeTester/releases/tag/10.0.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,HMBSbige/NatTypeTester,10.0.6,https://github.com/HMBSbige/NatTypeTester/releases/tag/10.0.6,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,HMBSbige/NatTypeTester,10.0.8,https://github.com/HMBSbige/NatTypeTester/releases/tag/10.0.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,Hommy-master/capcut-mate,,https://github.com/Hommy-master/capcut-mate,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,maioria,A=sim; B=sim; C=incerto,,,
+release,Hommy-master/capcut-mate,v2.0.2,https://github.com/Hommy-master/capcut-mate/releases/tag/v2.0.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Hommy-master/capcut-mate,v2.0.7,https://github.com/Hommy-master/capcut-mate/releases/tag/v2.0.7,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Hommy-master/capcut-mate,v5.0.1,https://github.com/Hommy-master/capcut-mate/releases/tag/v5.0.1,,,,,,,sim,maioria,A=sim; B=nao; C=sim
+release,Hommy-master/capcut-mate,v6.0.22,https://github.com/Hommy-master/capcut-mate/releases/tag/v6.0.22,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,Hommy-master/capcut-mate,v8.0.95,https://github.com/Hommy-master/capcut-mate/releases/tag/v8.0.95,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,Martian-Engineering/lossless-claw,,https://github.com/Martian-Engineering/lossless-claw,biblioteca/framework,maioria,A=outro; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,Martian-Engineering/lossless-claw,v0.5.2,https://github.com/Martian-Engineering/lossless-claw/releases/tag/v0.5.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Martian-Engineering/lossless-claw,v0.8.2,https://github.com/Martian-Engineering/lossless-claw/releases/tag/v0.8.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Martian-Engineering/lossless-claw,v0.15.1,https://github.com/Martian-Engineering/lossless-claw/releases/tag/v0.15.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Martian-Engineering/lossless-claw,v0.15.4,https://github.com/Martian-Engineering/lossless-claw/releases/tag/v0.15.4,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Martian-Engineering/lossless-claw,v1.0.0,https://github.com/Martian-Engineering/lossless-claw/releases/tag/v1.0.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,OpenRCT2/OpenRCT2,,https://github.com/OpenRCT2/OpenRCT2,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,OpenRCT2/OpenRCT2,v0.4.27,https://github.com/OpenRCT2/OpenRCT2/releases/tag/v0.4.27,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,OpenRCT2/OpenRCT2,v0.4.32,https://github.com/OpenRCT2/OpenRCT2/releases/tag/v0.4.32,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,OpenRCT2/OpenRCT2,v0.5.2,https://github.com/OpenRCT2/OpenRCT2/releases/tag/v0.5.2,,,,,,,nao,maioria,A=nao; B=nao; C=sim
+release,OpenRCT2/OpenRCT2,v0.5.3,https://github.com/OpenRCT2/OpenRCT2/releases/tag/v0.5.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,OpenRCT2/OpenRCT2,v0.5.4,https://github.com/OpenRCT2/OpenRCT2/releases/tag/v0.5.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,Sonarr/Sonarr,,https://github.com/Sonarr/Sonarr,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,Sonarr/Sonarr,v4.0.16.2944,https://github.com/Sonarr/Sonarr/releases/tag/v4.0.16.2944,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Sonarr/Sonarr,v4.0.17.2952,https://github.com/Sonarr/Sonarr/releases/tag/v4.0.17.2952,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Sonarr/Sonarr,v4.0.18.2971,https://github.com/Sonarr/Sonarr/releases/tag/v4.0.18.2971,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Sonarr/Sonarr,v4.0.19.2979,https://github.com/Sonarr/Sonarr/releases/tag/v4.0.19.2979,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,Sonarr/Sonarr,v4.0.20.3014,https://github.com/Sonarr/Sonarr/releases/tag/v4.0.20.3014,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+repo,XTLS/Xray-core,,https://github.com/XTLS/Xray-core,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,XTLS/Xray-core,v25.10.15,https://github.com/XTLS/Xray-core/releases/tag/v25.10.15,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,XTLS/Xray-core,v25.12.8,https://github.com/XTLS/Xray-core/releases/tag/v25.12.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,XTLS/Xray-core,v26.1.23,https://github.com/XTLS/Xray-core/releases/tag/v26.1.23,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,XTLS/Xray-core,v26.2.6,https://github.com/XTLS/Xray-core/releases/tag/v26.2.6,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,XTLS/Xray-core,v26.3.27,https://github.com/XTLS/Xray-core/releases/tag/v26.3.27,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,adonisjs/core,,https://github.com/adonisjs/core,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,adonisjs/core,v6.19.1,https://github.com/adonisjs/core/releases/tag/v6.19.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,adonisjs/core,v6.19.2,https://github.com/adonisjs/core/releases/tag/v6.19.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,adonisjs/core,v7.0.1,https://github.com/adonisjs/core/releases/tag/v7.0.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,adonisjs/core,v7.2.0,https://github.com/adonisjs/core/releases/tag/v7.2.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,adonisjs/core,v7.3.2,https://github.com/adonisjs/core/releases/tag/v7.3.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,agno-agi/agno,,https://github.com/agno-agi/agno,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,agno-agi/agno,v2.2.8,https://github.com/agno-agi/agno/releases/tag/v2.2.8,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,agno-agi/agno,v2.3.6,https://github.com/agno-agi/agno/releases/tag/v2.3.6,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,agno-agi/agno,v2.3.15,https://github.com/agno-agi/agno/releases/tag/v2.3.15,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,agno-agi/agno,v2.4.3,https://github.com/agno-agi/agno/releases/tag/v2.4.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,agno-agi/agno,v2.6.19,https://github.com/agno-agi/agno/releases/tag/v2.6.19,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,aio-libs/aiohttp,,https://github.com/aio-libs/aiohttp,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,aio-libs/aiohttp,v3.13.0,https://github.com/aio-libs/aiohttp/releases/tag/v3.13.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,aio-libs/aiohttp,v3.13.1,https://github.com/aio-libs/aiohttp/releases/tag/v3.13.1,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,aio-libs/aiohttp,v3.13.5,https://github.com/aio-libs/aiohttp/releases/tag/v3.13.5,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,aio-libs/aiohttp,v3.14.1,https://github.com/aio-libs/aiohttp/releases/tag/v3.14.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,aio-libs/aiohttp,v3.14.2,https://github.com/aio-libs/aiohttp/releases/tag/v3.14.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,ant-media/Ant-Media-Server,,https://github.com/ant-media/Ant-Media-Server,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,ant-media/Ant-Media-Server,ams-v2.16.0,https://github.com/ant-media/Ant-Media-Server/releases/tag/ams-v2.16.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ant-media/Ant-Media-Server,ams-v2.16.2,https://github.com/ant-media/Ant-Media-Server/releases/tag/ams-v2.16.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,ant-media/Ant-Media-Server,ams-v2.17.0,https://github.com/ant-media/Ant-Media-Server/releases/tag/ams-v2.17.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ant-media/Ant-Media-Server,ams-v3.0.2,https://github.com/ant-media/Ant-Media-Server/releases/tag/ams-v3.0.2,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,ant-media/Ant-Media-Server,ams-v3.1.0,https://github.com/ant-media/Ant-Media-Server/releases/tag/ams-v3.1.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,asterinas/asterinas,,https://github.com/asterinas/asterinas,outro,maioria,A=outro; B=outro; C=aplicacao/servico,incerto,maioria,A=incerto; B=incerto; C=sim,,,
+release,asterinas/asterinas,v0.17.0,https://github.com/asterinas/asterinas/releases/tag/v0.17.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,asterinas/asterinas,v0.17.1,https://github.com/asterinas/asterinas/releases/tag/v0.17.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,asterinas/asterinas,v0.17.2,https://github.com/asterinas/asterinas/releases/tag/v0.17.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,asterinas/asterinas,v0.18.0,https://github.com/asterinas/asterinas/releases/tag/v0.18.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,asterinas/asterinas,v0.18.1,https://github.com/asterinas/asterinas/releases/tag/v0.18.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,autobrr/qui,,https://github.com/autobrr/qui,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,autobrr/qui,v1.9.0,https://github.com/autobrr/qui/releases/tag/v1.9.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,autobrr/qui,v1.14.0,https://github.com/autobrr/qui/releases/tag/v1.14.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,autobrr/qui,v1.16.1,https://github.com/autobrr/qui/releases/tag/v1.16.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,autobrr/qui,v1.23.0,https://github.com/autobrr/qui/releases/tag/v1.23.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,autobrr/qui,v1.24.0,https://github.com/autobrr/qui/releases/tag/v1.24.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,can1357/oh-my-pi,,https://github.com/can1357/oh-my-pi,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,can1357/oh-my-pi,v12.12.3,https://github.com/can1357/oh-my-pi/releases/tag/v12.12.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,can1357/oh-my-pi,v16.1.23,https://github.com/can1357/oh-my-pi/releases/tag/v16.1.23,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,can1357/oh-my-pi,v17.2.6,https://github.com/can1357/oh-my-pi/releases/tag/v17.2.6,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,can1357/oh-my-pi,v18.0.11,https://github.com/can1357/oh-my-pi/releases/tag/v18.0.11,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,can1357/oh-my-pi,v18.1.9,https://github.com/can1357/oh-my-pi/releases/tag/v18.1.9,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,ccusage/ccusage,,https://github.com/ccusage/ccusage,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,ccusage/ccusage,v18.0.2,https://github.com/ccusage/ccusage/releases/tag/v18.0.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,ccusage/ccusage,v18.0.9,https://github.com/ccusage/ccusage/releases/tag/v18.0.9,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,ccusage/ccusage,v20.0.15,https://github.com/ccusage/ccusage/releases/tag/v20.0.15,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ccusage/ccusage,v20.0.17,https://github.com/ccusage/ccusage/releases/tag/v20.0.17,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,ccusage/ccusage,v20.0.21,https://github.com/ccusage/ccusage/releases/tag/v20.0.21,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,commaai/openpilot,,https://github.com/commaai/openpilot,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,commaai/openpilot,v0.10.1,https://github.com/commaai/openpilot/releases/tag/v0.10.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,commaai/openpilot,v0.10.2,https://github.com/commaai/openpilot/releases/tag/v0.10.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,commaai/openpilot,v0.10.3,https://github.com/commaai/openpilot/releases/tag/v0.10.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,commaai/openpilot,v0.11.0,https://github.com/commaai/openpilot/releases/tag/v0.11.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,commaai/openpilot,v0.11.1,https://github.com/commaai/openpilot/releases/tag/v0.11.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,cure53/DOMPurify,,https://github.com/cure53/DOMPurify,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,cure53/DOMPurify,3.3.0,https://github.com/cure53/DOMPurify/releases/tag/3.3.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,cure53/DOMPurify,3.3.1,https://github.com/cure53/DOMPurify/releases/tag/3.3.1,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,cure53/DOMPurify,3.4.3,https://github.com/cure53/DOMPurify/releases/tag/3.4.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,cure53/DOMPurify,3.4.11,https://github.com/cure53/DOMPurify/releases/tag/3.4.11,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,cure53/DOMPurify,3.4.13,https://github.com/cure53/DOMPurify/releases/tag/3.4.13,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,elastic/elasticsearch,,https://github.com/elastic/elasticsearch,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,elastic/elasticsearch,v9.1.5,https://github.com/elastic/elasticsearch/releases/tag/v9.1.5,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,elastic/elasticsearch,v8.19.6,https://github.com/elastic/elasticsearch/releases/tag/v8.19.6,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,elastic/elasticsearch,v8.19.9,https://github.com/elastic/elasticsearch/releases/tag/v8.19.9,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,elastic/elasticsearch,v8.19.14,https://github.com/elastic/elasticsearch/releases/tag/v8.19.14,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,elastic/elasticsearch,v9.4.1,https://github.com/elastic/elasticsearch/releases/tag/v9.4.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,emanuele-f/PCAPdroid,,https://github.com/emanuele-f/PCAPdroid,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,emanuele-f/PCAPdroid,v1.9.0,https://github.com/emanuele-f/PCAPdroid/releases/tag/v1.9.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,emanuele-f/PCAPdroid,v1.9.1,https://github.com/emanuele-f/PCAPdroid/releases/tag/v1.9.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,emanuele-f/PCAPdroid,v2.0.0,https://github.com/emanuele-f/PCAPdroid/releases/tag/v2.0.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,emanuele-f/PCAPdroid,v2.0.1,https://github.com/emanuele-f/PCAPdroid/releases/tag/v2.0.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,emanuele-f/PCAPdroid,v2.0.2,https://github.com/emanuele-f/PCAPdroid/releases/tag/v2.0.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,espressif/esp-idf,,https://github.com/espressif/esp-idf,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,espressif/esp-idf,v5.2.6,https://github.com/espressif/esp-idf/releases/tag/v5.2.6,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,espressif/esp-idf,v5.4.3,https://github.com/espressif/esp-idf/releases/tag/v5.4.3,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,espressif/esp-idf,v6.0,https://github.com/espressif/esp-idf/releases/tag/v6.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,espressif/esp-idf,v6.0.2,https://github.com/espressif/esp-idf/releases/tag/v6.0.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,espressif/esp-idf,v5.2.8,https://github.com/espressif/esp-idf/releases/tag/v5.2.8,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,flet-dev/flet,,https://github.com/flet-dev/flet,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,flet-dev/flet,v0.80.0,https://github.com/flet-dev/flet/releases/tag/v0.80.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,flet-dev/flet,v0.82.2,https://github.com/flet-dev/flet/releases/tag/v0.82.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,flet-dev/flet,v0.84.0,https://github.com/flet-dev/flet/releases/tag/v0.84.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,flet-dev/flet,v0.86.0,https://github.com/flet-dev/flet/releases/tag/v0.86.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,flet-dev/flet,v1.0.2,https://github.com/flet-dev/flet/releases/tag/v1.0.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,freqtrade/freqtrade,,https://github.com/freqtrade/freqtrade,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,freqtrade/freqtrade,2025.9.1,https://github.com/freqtrade/freqtrade/releases/tag/2025.9.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,freqtrade/freqtrade,2025.10,https://github.com/freqtrade/freqtrade/releases/tag/2025.10,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,freqtrade/freqtrade,2025.12,https://github.com/freqtrade/freqtrade/releases/tag/2025.12,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,freqtrade/freqtrade,2026.7,https://github.com/freqtrade/freqtrade/releases/tag/2026.7,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,freqtrade/freqtrade,2026.8,https://github.com/freqtrade/freqtrade/releases/tag/2026.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,go-gitea/gitea,,https://github.com/go-gitea/gitea,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,go-gitea/gitea,v1.24.7,https://github.com/go-gitea/gitea/releases/tag/v1.24.7,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,go-gitea/gitea,v1.25.0,https://github.com/go-gitea/gitea/releases/tag/v1.25.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,go-gitea/gitea,v1.25.4,https://github.com/go-gitea/gitea/releases/tag/v1.25.4,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,go-gitea/gitea,v1.26.4,https://github.com/go-gitea/gitea/releases/tag/v1.26.4,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,go-gitea/gitea,v1.27.3,https://github.com/go-gitea/gitea/releases/tag/v1.27.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,grpc/grpc,,https://github.com/grpc/grpc,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,grpc/grpc,v1.76.0,https://github.com/grpc/grpc/releases/tag/v1.76.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,grpc/grpc,v1.81.1,https://github.com/grpc/grpc/releases/tag/v1.81.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,grpc/grpc,v1.83.0,https://github.com/grpc/grpc/releases/tag/v1.83.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,grpc/grpc,v1.82.2,https://github.com/grpc/grpc/releases/tag/v1.82.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,grpc/grpc,v1.83.1,https://github.com/grpc/grpc/releases/tag/v1.83.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,huggingface/pytorch-image-models,,https://github.com/huggingface/pytorch-image-models,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,huggingface/pytorch-image-models,v1.0.21,https://github.com/huggingface/pytorch-image-models/releases/tag/v1.0.21,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,huggingface/pytorch-image-models,v1.0.22,https://github.com/huggingface/pytorch-image-models/releases/tag/v1.0.22,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,huggingface/pytorch-image-models,v1.0.26,https://github.com/huggingface/pytorch-image-models/releases/tag/v1.0.26,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,huggingface/pytorch-image-models,v1.0.28,https://github.com/huggingface/pytorch-image-models/releases/tag/v1.0.28,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,huggingface/pytorch-image-models,v1.0.29,https://github.com/huggingface/pytorch-image-models/releases/tag/v1.0.29,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,infernojs/inferno,,https://github.com/infernojs/inferno,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,infernojs/inferno,v9.0.5,https://github.com/infernojs/inferno/releases/tag/v9.0.5,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,infernojs/inferno,v9.0.7,https://github.com/infernojs/inferno/releases/tag/v9.0.7,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,infernojs/inferno,v9.0.8,https://github.com/infernojs/inferno/releases/tag/v9.0.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,infernojs/inferno,v9.0.10,https://github.com/infernojs/inferno/releases/tag/v9.0.10,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,infernojs/inferno,v9.0.11,https://github.com/infernojs/inferno/releases/tag/v9.0.11,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,latitude-dev/latitude-llm,,https://github.com/latitude-dev/latitude-llm,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,latitude-dev/latitude-llm,python-sdk-8.1.0,https://github.com/latitude-dev/latitude-llm/releases/tag/python-sdk-8.1.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,latitude-dev/latitude-llm,cli-7.5.0,https://github.com/latitude-dev/latitude-llm/releases/tag/cli-7.5.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,latitude-dev/latitude-llm,python-sdk-9.7.1,https://github.com/latitude-dev/latitude-llm/releases/tag/python-sdk-9.7.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,latitude-dev/latitude-llm,typescript-sdk-9.8.0,https://github.com/latitude-dev/latitude-llm/releases/tag/typescript-sdk-9.8.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,latitude-dev/latitude-llm,typescript-telemetry-4.1.0,https://github.com/latitude-dev/latitude-llm/releases/tag/typescript-telemetry-4.1.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,macro-inc/macro,,https://github.com/macro-inc/macro,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,macro-inc/macro,v2026.1.12.0,https://github.com/macro-inc/macro/releases/tag/v2026.1.12.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,macro-inc/macro,v2026.1.20.0,https://github.com/macro-inc/macro/releases/tag/v2026.1.20.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,macro-inc/macro,v2026.4.2.0,https://github.com/macro-inc/macro/releases/tag/v2026.4.2.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,macro-inc/macro,v2026.7.18.0,https://github.com/macro-inc/macro/releases/tag/v2026.7.18.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,macro-inc/macro,v2026.9.22.0,https://github.com/macro-inc/macro/releases/tag/v2026.9.22.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,mermaid-js/mermaid,,https://github.com/mermaid-js/mermaid,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,mermaid-js/mermaid,@mermaid-js/tiny@11.13.0,https://github.com/mermaid-js/mermaid/releases/tag/%40mermaid-js%2Ftiny%4011.13.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mermaid-js/mermaid,@mermaid-js/tiny@11.14.0,https://github.com/mermaid-js/mermaid/releases/tag/%40mermaid-js%2Ftiny%4011.14.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mermaid-js/mermaid,@mermaid-js/examples@2.0.0,https://github.com/mermaid-js/mermaid/releases/tag/%40mermaid-js%2Fexamples%402.0.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mermaid-js/mermaid,@mermaid-js/mermaid-zenuml@1.0.0,https://github.com/mermaid-js/mermaid/releases/tag/%40mermaid-js%2Fmermaid-zenuml%401.0.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mermaid-js/mermaid,@mermaid-js/mermaid-zenuml@1.0.1,https://github.com/mermaid-js/mermaid/releases/tag/%40mermaid-js%2Fmermaid-zenuml%401.0.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,microsoft/TypeScript,,https://github.com/microsoft/TypeScript,ferramenta CLI,maioria,A=ferramenta CLI; B=biblioteca/framework; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,microsoft/TypeScript,v5.9.3,https://github.com/microsoft/TypeScript/releases/tag/v5.9.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,microsoft/TypeScript,v5.8.3,https://github.com/microsoft/TypeScript/releases/tag/v5.8.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,microsoft/TypeScript,v5.9.2,https://github.com/microsoft/TypeScript/releases/tag/v5.9.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,microsoft/TypeScript,v6.0.3,https://github.com/microsoft/TypeScript/releases/tag/v6.0.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,microsoft/TypeScript,v7.0.2,https://github.com/microsoft/TypeScript/releases/tag/v7.0.2,,,,,,,nao,maioria,A=sim; B=nao; C=nao
+repo,mikefarah/yq,,https://github.com/mikefarah/yq,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,mikefarah/yq,v4.48.1,https://github.com/mikefarah/yq/releases/tag/v4.48.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mikefarah/yq,v4.52.1,https://github.com/mikefarah/yq/releases/tag/v4.52.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mikefarah/yq,v4.53.2,https://github.com/mikefarah/yq/releases/tag/v4.53.2,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mikefarah/yq,v4.53.4,https://github.com/mikefarah/yq/releases/tag/v4.53.4,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,mikefarah/yq,v4.53.6,https://github.com/mikefarah/yq/releases/tag/v4.53.6,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,mudler/LocalAGI,,https://github.com/mudler/LocalAGI,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,mudler/LocalAGI,v2.5.0,https://github.com/mudler/LocalAGI/releases/tag/v2.5.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mudler/LocalAGI,v2.6.0,https://github.com/mudler/LocalAGI/releases/tag/v2.6.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mudler/LocalAGI,v2.7.0,https://github.com/mudler/LocalAGI/releases/tag/v2.7.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mudler/LocalAGI,v2.8.0,https://github.com/mudler/LocalAGI/releases/tag/v2.8.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,mudler/LocalAGI,v2.8.1,https://github.com/mudler/LocalAGI/releases/tag/v2.8.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,nestjs/nest,,https://github.com/nestjs/nest,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,nestjs/nest,v11.1.11,https://github.com/nestjs/nest/releases/tag/v11.1.11,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,nestjs/nest,v11.1.18,https://github.com/nestjs/nest/releases/tag/v11.1.18,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,nestjs/nest,v12.0.2,https://github.com/nestjs/nest/releases/tag/v12.0.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,nestjs/nest,v12.0.3,https://github.com/nestjs/nest/releases/tag/v12.0.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,nestjs/nest,v11.2.6,https://github.com/nestjs/nest/releases/tag/v11.2.6,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,nginx-proxy/nginx-proxy,,https://github.com/nginx-proxy/nginx-proxy,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,nginx-proxy/nginx-proxy,1.9.0,https://github.com/nginx-proxy/nginx-proxy/releases/tag/1.9.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,nginx-proxy/nginx-proxy,1.10.1,https://github.com/nginx-proxy/nginx-proxy/releases/tag/1.10.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,nginx-proxy/nginx-proxy,1.11.1,https://github.com/nginx-proxy/nginx-proxy/releases/tag/1.11.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,nginx-proxy/nginx-proxy,1.11.5,https://github.com/nginx-proxy/nginx-proxy/releases/tag/1.11.5,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,nginx-proxy/nginx-proxy,1.11.6,https://github.com/nginx-proxy/nginx-proxy/releases/tag/1.11.6,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,orientechnologies/orientdb,,https://github.com/orientechnologies/orientdb,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,orientechnologies/orientdb,3.2.45,https://github.com/orientechnologies/orientdb/releases/tag/3.2.45,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,orientechnologies/orientdb,3.2.50,https://github.com/orientechnologies/orientdb/releases/tag/3.2.50,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,orientechnologies/orientdb,3.2.53,https://github.com/orientechnologies/orientdb/releases/tag/3.2.53,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,orientechnologies/orientdb,3.2.54,https://github.com/orientechnologies/orientdb/releases/tag/3.2.54,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,orientechnologies/orientdb,3.2.55,https://github.com/orientechnologies/orientdb/releases/tag/3.2.55,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,permissionlesstech/bitchat,,https://github.com/permissionlesstech/bitchat,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,permissionlesstech/bitchat,v1.4.4,https://github.com/permissionlesstech/bitchat/releases/tag/v1.4.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,permissionlesstech/bitchat,v1.5.0,https://github.com/permissionlesstech/bitchat/releases/tag/v1.5.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,permissionlesstech/bitchat,v1.5.4,https://github.com/permissionlesstech/bitchat/releases/tag/v1.5.4,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,permissionlesstech/bitchat,v1.7.0,https://github.com/permissionlesstech/bitchat/releases/tag/v1.7.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,permissionlesstech/bitchat,v1.7.1,https://github.com/permissionlesstech/bitchat/releases/tag/v1.7.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,pytorch/pytorch,,https://github.com/pytorch/pytorch,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,pytorch/pytorch,v2.9.0,https://github.com/pytorch/pytorch/releases/tag/v2.9.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,pytorch/pytorch,v2.9.1,https://github.com/pytorch/pytorch/releases/tag/v2.9.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,pytorch/pytorch,v2.12.1,https://github.com/pytorch/pytorch/releases/tag/v2.12.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,pytorch/pytorch,v2.14.0,https://github.com/pytorch/pytorch/releases/tag/v2.14.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,pytorch/pytorch,v2.14.1,https://github.com/pytorch/pytorch/releases/tag/v2.14.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,react/react,,https://github.com/react/react,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,react/react,v19.2.0,https://github.com/react/react/releases/tag/v19.2.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,react/react,v19.1.4,https://github.com/react/react/releases/tag/v19.1.4,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,react/react,v19.0.3,https://github.com/react/react/releases/tag/v19.0.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,react/react,v19.0.7,https://github.com/react/react/releases/tag/v19.0.7,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,react/react,v19.1.9,https://github.com/react/react/releases/tag/v19.1.9,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,rendercv/rendercv,,https://github.com/rendercv/rendercv,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,rendercv/rendercv,v2.3,https://github.com/rendercv/rendercv/releases/tag/v2.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,rendercv/rendercv,v2.4,https://github.com/rendercv/rendercv/releases/tag/v2.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,rendercv/rendercv,v2.5,https://github.com/rendercv/rendercv/releases/tag/v2.5,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,rendercv/rendercv,v2.7,https://github.com/rendercv/rendercv/releases/tag/v2.7,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,rendercv/rendercv,v2.8,https://github.com/rendercv/rendercv/releases/tag/v2.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,ruffle-rs/ruffle,,https://github.com/ruffle-rs/ruffle,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,ruffle-rs/ruffle,v0.1.0,https://github.com/ruffle-rs/ruffle/releases/tag/v0.1.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ruffle-rs/ruffle,v0.2.0,https://github.com/ruffle-rs/ruffle/releases/tag/v0.2.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ruffle-rs/ruffle,v0.3.0,https://github.com/ruffle-rs/ruffle/releases/tag/v0.3.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,ruffle-rs/ruffle,v0.4.1,https://github.com/ruffle-rs/ruffle/releases/tag/v0.4.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,ruffle-rs/ruffle,v0.5.0,https://github.com/ruffle-rs/ruffle/releases/tag/v0.5.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,saadeghi/daisyui,,https://github.com/saadeghi/daisyui,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,saadeghi/daisyui,v5.1.31,https://github.com/saadeghi/daisyui/releases/tag/v5.1.31,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,saadeghi/daisyui,v5.4.2,https://github.com/saadeghi/daisyui/releases/tag/v5.4.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,saadeghi/daisyui,v5.5.11,https://github.com/saadeghi/daisyui/releases/tag/v5.5.11,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,saadeghi/daisyui,v5.5.15,https://github.com/saadeghi/daisyui/releases/tag/v5.5.15,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,saadeghi/daisyui,v5.5.23,https://github.com/saadeghi/daisyui/releases/tag/v5.5.23,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,sandboxie-plus/Sandboxie,,https://github.com/sandboxie-plus/Sandboxie,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,sandboxie-plus/Sandboxie,v1.16.4,https://github.com/sandboxie-plus/Sandboxie/releases/tag/v1.16.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,sandboxie-plus/Sandboxie,v1.16.5,https://github.com/sandboxie-plus/Sandboxie/releases/tag/v1.16.5,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,sandboxie-plus/Sandboxie,v1.17.4,https://github.com/sandboxie-plus/Sandboxie/releases/tag/v1.17.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,sandboxie-plus/Sandboxie,v1.18.1,https://github.com/sandboxie-plus/Sandboxie/releases/tag/v1.18.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,sandboxie-plus/Sandboxie,v1.18.3,https://github.com/sandboxie-plus/Sandboxie/releases/tag/v1.18.3,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,scalar/scalar,,https://github.com/scalar/scalar,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,scalar/scalar,release-2026-01-16-342e44b,https://github.com/scalar/scalar/releases/tag/release-2026-01-16-342e44b,,,,,,,nao,maioria,A=nao; B=nao; C=sim
+release,scalar/scalar,release-2026-02-04-83d70db,https://github.com/scalar/scalar/releases/tag/release-2026-02-04-83d70db,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,scalar/scalar,release-2026-03-04-6716c0a,https://github.com/scalar/scalar/releases/tag/release-2026-03-04-6716c0a,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,scalar/scalar,release-2026-06-11-fe0498e,https://github.com/scalar/scalar/releases/tag/release-2026-06-11-fe0498e,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,scalar/scalar,release-2026-09-19-641d279,https://github.com/scalar/scalar/releases/tag/release-2026-09-19-641d279,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,simdutf/simdutf,,https://github.com/simdutf/simdutf,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,simdutf/simdutf,v7.5.0,https://github.com/simdutf/simdutf/releases/tag/v7.5.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,simdutf/simdutf,v8.1.0,https://github.com/simdutf/simdutf/releases/tag/v8.1.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,simdutf/simdutf,v9.1.0,https://github.com/simdutf/simdutf/releases/tag/v9.1.0,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,simdutf/simdutf,v9.1.1,https://github.com/simdutf/simdutf/releases/tag/v9.1.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,simdutf/simdutf,v9.2.0,https://github.com/simdutf/simdutf/releases/tag/v9.2.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,simplecov-ruby/simplecov,,https://github.com/simplecov-ruby/simplecov,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,simplecov-ruby/simplecov,v0.22.0,https://github.com/simplecov-ruby/simplecov/releases/tag/v0.22.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,simplecov-ruby/simplecov,v1.0.1,https://github.com/simplecov-ruby/simplecov/releases/tag/v1.0.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,simplecov-ruby/simplecov,v1.1.0,https://github.com/simplecov-ruby/simplecov/releases/tag/v1.1.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,simplecov-ruby/simplecov,v1.3.1,https://github.com/simplecov-ruby/simplecov/releases/tag/v1.3.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,simplecov-ruby/simplecov,v1.3.2,https://github.com/simplecov-ruby/simplecov/releases/tag/v1.3.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,slidevjs/slidev,,https://github.com/slidevjs/slidev,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,slidevjs/slidev,v52.6.0,https://github.com/slidevjs/slidev/releases/tag/v52.6.0,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,slidevjs/slidev,v52.11.2,https://github.com/slidevjs/slidev/releases/tag/v52.11.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,slidevjs/slidev,v52.12.0,https://github.com/slidevjs/slidev/releases/tag/v52.12.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,slidevjs/slidev,v52.18.0,https://github.com/slidevjs/slidev/releases/tag/v52.18.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,slidevjs/slidev,v52.20.1,https://github.com/slidevjs/slidev/releases/tag/v52.20.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,spring-cloud/spring-cloud-gateway,,https://github.com/spring-cloud/spring-cloud-gateway,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,spring-cloud/spring-cloud-gateway,v5.0.0-M3,https://github.com/spring-cloud/spring-cloud-gateway/releases/tag/v5.0.0-M3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,spring-cloud/spring-cloud-gateway,v5.0.0,https://github.com/spring-cloud/spring-cloud-gateway/releases/tag/v5.0.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,spring-cloud/spring-cloud-gateway,v5.0.1,https://github.com/spring-cloud/spring-cloud-gateway/releases/tag/v5.0.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,spring-cloud/spring-cloud-gateway,v4.3.4,https://github.com/spring-cloud/spring-cloud-gateway/releases/tag/v4.3.4,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,spring-cloud/spring-cloud-gateway,v5.0.2,https://github.com/spring-cloud/spring-cloud-gateway/releases/tag/v5.0.2,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+repo,superset-sh/superset,,https://github.com/superset-sh/superset,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,superset-sh/superset,desktop-v0.0.20,https://github.com/superset-sh/superset/releases/tag/desktop-v0.0.20,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,superset-sh/superset,desktop-v0.0.48,https://github.com/superset-sh/superset/releases/tag/desktop-v0.0.48,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,superset-sh/superset,desktop-v0.0.86,https://github.com/superset-sh/superset/releases/tag/desktop-v0.0.86,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,superset-sh/superset,desktop-v1.12.2,https://github.com/superset-sh/superset/releases/tag/desktop-v1.12.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,superset-sh/superset,desktop-v1.14.3,https://github.com/superset-sh/superset/releases/tag/desktop-v1.14.3,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,surveyjs/survey-library,,https://github.com/surveyjs/survey-library,biblioteca/framework,unanime,A=biblioteca/framework; B=biblioteca/framework; C=biblioteca/framework,sim,unanime,A=sim; B=sim; C=sim,,,
+release,surveyjs/survey-library,v2.3.15,https://github.com/surveyjs/survey-library/releases/tag/v2.3.15,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,surveyjs/survey-library,v2.5.4,https://github.com/surveyjs/survey-library/releases/tag/v2.5.4,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,surveyjs/survey-library,v2.5.10,https://github.com/surveyjs/survey-library/releases/tag/v2.5.10,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,surveyjs/survey-library,v2.5.32,https://github.com/surveyjs/survey-library/releases/tag/v2.5.32,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,surveyjs/survey-library,v3.0.0-beta.8,https://github.com/surveyjs/survey-library/releases/tag/v3.0.0-beta.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,typst/typst,,https://github.com/typst/typst,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,typst/typst,v0.14.0,https://github.com/typst/typst/releases/tag/v0.14.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,typst/typst,v0.14.1,https://github.com/typst/typst/releases/tag/v0.14.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,typst/typst,v0.14.2,https://github.com/typst/typst/releases/tag/v0.14.2,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,typst/typst,v0.15.0,https://github.com/typst/typst/releases/tag/v0.15.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,typst/typst,v0.15.1,https://github.com/typst/typst/releases/tag/v0.15.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,vuejs/vitepress,,https://github.com/vuejs/vitepress,biblioteca/framework,maioria,A=biblioteca/framework; B=biblioteca/framework; C=ferramenta CLI,incerto,maioria,A=incerto; B=incerto; C=sim,,,
+release,vuejs/vitepress,v2.0.0-alpha.15,https://github.com/vuejs/vitepress/releases/tag/v2.0.0-alpha.15,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,vuejs/vitepress,v2.0.0-alpha.16,https://github.com/vuejs/vitepress/releases/tag/v2.0.0-alpha.16,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,vuejs/vitepress,v2.0.0-alpha.17,https://github.com/vuejs/vitepress/releases/tag/v2.0.0-alpha.17,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,vuejs/vitepress,v2.0.0-alpha.19,https://github.com/vuejs/vitepress/releases/tag/v2.0.0-alpha.19,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,vuejs/vitepress,v2.0.0-alpha.20,https://github.com/vuejs/vitepress/releases/tag/v2.0.0-alpha.20,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+repo,webadderallorg/Recordly,,https://github.com/webadderallorg/Recordly,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,webadderallorg/Recordly,v1.0.4,https://github.com/webadderallorg/Recordly/releases/tag/v1.0.4,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,webadderallorg/Recordly,v1.1.5,https://github.com/webadderallorg/Recordly/releases/tag/v1.1.5,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,webadderallorg/Recordly,v1.1.6,https://github.com/webadderallorg/Recordly/releases/tag/v1.1.6,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,webadderallorg/Recordly,v1.1.10,https://github.com/webadderallorg/Recordly/releases/tag/v1.1.10,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,webadderallorg/Recordly,v1.1.18,https://github.com/webadderallorg/Recordly/releases/tag/v1.1.18,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+repo,wtfutil/wtf,,https://github.com/wtfutil/wtf,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,wtfutil/wtf,v0.47.0,https://github.com/wtfutil/wtf/releases/tag/v0.47.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,wtfutil/wtf,v0.47.1,https://github.com/wtfutil/wtf/releases/tag/v0.47.1,,,,,,,nao,maioria,A=nao; B=sim; C=nao
+release,wtfutil/wtf,v0.48.0,https://github.com/wtfutil/wtf/releases/tag/v0.48.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,wtfutil/wtf,v0.49.1,https://github.com/wtfutil/wtf/releases/tag/v0.49.1,,,,,,,sim,unanime,A=sim; B=sim; C=sim
+release,wtfutil/wtf,v0.50.0,https://github.com/wtfutil/wtf/releases/tag/v0.50.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+repo,zellij-org/zellij,,https://github.com/zellij-org/zellij,ferramenta CLI,unanime,A=ferramenta CLI; B=ferramenta CLI; C=ferramenta CLI,sim,unanime,A=sim; B=sim; C=sim,,,
+release,zellij-org/zellij,v0.44.0,https://github.com/zellij-org/zellij/releases/tag/v0.44.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,zellij-org/zellij,v0.44.1,https://github.com/zellij-org/zellij/releases/tag/v0.44.1,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,zellij-org/zellij,v0.44.2,https://github.com/zellij-org/zellij/releases/tag/v0.44.2,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+release,zellij-org/zellij,v0.45.0,https://github.com/zellij-org/zellij/releases/tag/v0.45.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,zellij-org/zellij,v0.45.1,https://github.com/zellij-org/zellij/releases/tag/v0.45.1,,,,,,,sim,maioria,A=sim; B=sim; C=nao
+repo,zhayujie/CowAgent,,https://github.com/zhayujie/CowAgent,aplicacao/servico,unanime,A=aplicacao/servico; B=aplicacao/servico; C=aplicacao/servico,sim,unanime,A=sim; B=sim; C=sim,,,
+release,zhayujie/CowAgent,2.0.0,https://github.com/zhayujie/CowAgent/releases/tag/2.0.0,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,zhayujie/CowAgent,2.0.1,https://github.com/zhayujie/CowAgent/releases/tag/2.0.1,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,zhayujie/CowAgent,2.0.8,https://github.com/zhayujie/CowAgent/releases/tag/2.0.8,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,zhayujie/CowAgent,2.1.5,https://github.com/zhayujie/CowAgent/releases/tag/2.1.5,,,,,,,nao,unanime,A=nao; B=nao; C=nao
+release,zhayujie/CowAgent,2.1.7,https://github.com/zhayujie/CowAgent/releases/tag/2.1.7,,,,,,,nao,unanime,A=nao; B=nao; C=nao
