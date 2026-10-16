@@ -43,6 +43,11 @@ Convenções:
 | `teto_compare_tag` | inteiro | tags | Tags sem `compare` porque o teto `max_compares_variante` foi atingido (amostra sistemática de pares; a contagem `n_tags` continua completa). 0 = teto não aplicado |
 | `commits_omitidos_tag` | inteiro | commits | Commits da janela que a API não consegue listar em `GET /repos/{owner}/{repo}/commits` (HTTP 5xx em qualquer página que os contenha, mesmo com `per_page=1`): pulados e contados. Na menor fatia (1 dia) a listagem é lida página a página e a página que falha é refinada (`per_page` 100 → 10 → 1). Uma tag que aponte para um desses commits não entra em `n_tags`. 0 = nenhum. Vazio se `erro_tags = 1` |
 | `erro_tags` | inteiro (0/1) | indicador | 1 = variante `tag` ausente: a API devolveu erro persistente (HTTP 5xx depois das tentativas com backoff, ou falha de rede) mesmo após refazer a listagem `GET /repos/{owner}/{repo}/commits` da janela fatiada por mês, subdividida ao meio até fatias de 1 dia e lida página a página (ex.: nenhum item de um bloco de 100 pôde ser lido); `n_tags` e as colunas `_tag` ficam vazias, o repositório continua na amostra e o caso vai para o log (WARNING). 0 = variante coletada normalmente |
+| `cfr_entrega` | decimal | fração 0–1 | RQ03 (b), unidade release (C1): releases da janela seguidas, em até 7 dias, por uma release corretiva ÷ releases avaliadas. Corretiva = heurística vigente de `metricas/corretiva.py` (versões e F1 em `docs/HEURISTICA_VERSOES.md`) sobre as mensagens do `compare` com a release anterior; sem compare, só pela tag. Releases dos últimos 7 dias da janela não entram no denominador (censura). Vazio se nenhuma release foi avaliada |
+| `n_falhas_entrega` | inteiro | releases | Releases da janela que falharam no CFR (b) (numerador de `cfr_entrega`) |
+| `n_censuradas_entrega` | inteiro | releases | Releases publicadas nos últimos 7 dias da janela, fora do denominador de `cfr_entrega` (censuradas) |
+| `rework_rate` | decimal | fração 0–1 | RQ08 (bônus): releases corretivas da janela ÷ `n_releases` (definição de rework rate do enunciado, sem censura) |
+| `cfr_entrega_pre` | decimal | fração 0–1 | CFR (b) com a unidade `release+pre` (entrada da combinação C2 da RQ07): mesma regra de `cfr_entrega` sobre releases e pré-releases; com o teto `max_compares_variante`, as unidades sem compare são classificadas só pela tag |
 | `score_freq` | inteiro | nota 1–4 | Nota DORA da frequência: ≥ 7/sem = 4; ≥ 1/sem = 3; ≥ 1/mês = 2; senão 1 |
 | `score_lead` | inteiro | nota 1–4 | Nota DORA do lead time (a): < 1 dia = 4; < 7 dias = 3; < 30 dias = 2; senão 1 |
 | `score_cfr` | inteiro | nota 1–4 | Nota DORA do CFR (a): ≤ 15% = 4; ≤ 30% = 3; ≤ 45% = 2; senão 1 |
@@ -50,6 +55,7 @@ Convenções:
 | `dora_overall` | texto | categoria | Mediana das 4 notas arredondada para baixo: 4 Elite, 3 High, 2 Medium, 1 Low. Vazio se alguma métrica for ausente |
 | `prop_censurados` | decimal | fração 0–1 | Derivada na consolidação: `n_censored` ÷ `n_episodes` — proporção de episódios de recuperação censurados no repositório (RQ04). Vazio se `n_episodes` = 0 |
 | `n_meses_no_teto` | inteiro | meses | Derivada na consolidação: número de meses listados em `meses_no_teto` (0 se nenhum). Permite filtrar repositórios cujos runs podem estar incompletos |
+| `tipo_projeto` | texto | — | Derivada na consolidação: tipo do projeto no consenso da amostra-ouro (`rotulos/consenso.csv`): `biblioteca/framework`, `aplicacao/servico`, `ferramenta CLI` ou `outro` (fator da RQ06). Vazio para os repositórios fora dos 60 rotulados |
 
 ## `data/funil.csv` — funil de seleção
 

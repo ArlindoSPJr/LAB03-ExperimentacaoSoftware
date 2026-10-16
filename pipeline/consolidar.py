@@ -21,12 +21,13 @@ from pipeline.orquestrador import (
 COLUNAS_TEXTO = ["repo", "language", "meses_no_teto", "dora_overall"]
 
 
-# Colunas calculadas na consolidação, acrescentadas depois das colunas do orquestrador.
-# PONTO DE EXTENSÃO (S02-O3.5, #36): acrescente aqui `cfr_entrega`, `rework_rate` e
-# `tipo_projeto`, calcule-as em `derivar_colunas` (dados externos, como
-# rotulos/consenso.csv, entram por `extras`) e documente-as em data/DICIONARIO.md
-# na mesma ordem (tests/test_consolidar.py confere o dicionário).
-COLUNAS_DERIVADAS = ["prop_censurados", "n_meses_no_teto"]
+# Colunas calculadas na consolidação, acrescentadas depois das colunas do orquestrador
+# e documentadas em data/DICIONARIO.md na mesma ordem (tests/test_consolidar.py confere).
+# `cfr_entrega` e `rework_rate` precisam dos commits de cada release e por isso são
+# coletadas pelo orquestrador (pipeline/etapa_entrega.py); `tipo_projeto` vem do consenso
+# da amostra-ouro (rotulos/consenso.csv) e entra por `extras`.
+COLUNAS_DERIVADAS = ["prop_censurados", "n_meses_no_teto", "tipo_projeto"]
+CONSENSO_PADRAO = pathlib.Path("rotulos/consenso.csv")
 COLUNAS_FINAIS = COLUNAS + COLUNAS_DERIVADAS
 COLUNAS_ELEGIVEIS = ["repo", "url_releases", "n_releases"]
 
@@ -96,7 +97,8 @@ def _num(metricas: pd.DataFrame, coluna: str) -> pd.Series:
 def _faixas(metricas: pd.DataFrame) -> list[str]:
     """Faixas válidas; valores ausentes (métrica não calculável) não são checados."""
     problemas = []
-    regras = [("cfr_ci", lambda s: (s < 0) | (s > 1), "fora de [0, 1]")]
+    regras = [(c, lambda s: (s < 0) | (s > 1), "fora de [0, 1]")
+              for c in ("cfr_ci", "cfr_entrega", "cfr_entrega_pre", "rework_rate")]
     regras += [(c, lambda s: s < 0, "negativo") for c in NAO_NEGATIVAS]
     regras += [(c, lambda s: ~s.isin([1, 2, 3, 4]) & s.notna(), "fora de 1..4") for c in NOTAS]
     for coluna, fora, descricao in regras:
@@ -207,15 +209,24 @@ def derivar_colunas(metricas: pd.DataFrame, extras: dict | None = None) -> pd.Da
     """Cópia de `metricas` com as COLUNAS_DERIVADAS recalculadas, na ordem COLUNAS_FINAIS.
 
     Idempotente: derivadas já presentes (consolidação anterior) são descartadas e
-    recalculadas. `extras` é reservado para dados externos ao CSV (ex.: o consenso
-    da validação manual, S02-O3.5); a S02-O1.3 não o usa.
+    recalculadas. `extras` traz dados externos ao CSV: `tipo_projeto` é um dicionário
+    repo -> tipo do consenso da amostra-ouro (vazio para os repositórios não rotulados).
     """
+    extras = extras or {}
     df = metricas[COLUNAS].copy()
     episodios = pd.to_numeric(df["n_episodes"], errors="coerce").astype("Float64")
     censurados = pd.to_numeric(df["n_censored"], errors="coerce").astype("Float64")
     df["prop_censurados"] = (censurados / episodios.where(episodios > 0)).astype(float)
     df["n_meses_no_teto"] = df["meses_no_teto"].map(_contar_meses).astype("Int64")
+    df["tipo_projeto"] = df["repo"].map(extras.get("tipo_projeto", {})).astype(object)
     return df[COLUNAS_FINAIS]
+
+
+def tipos_do_consenso(arquivo: pathlib.Path) -> dict:
+    """repo -> tipo_projeto do consenso (só linhas de repositório com tipo preenchido)."""
+    consenso = pd.read_csv(arquivo, dtype=str).fillna("")
+    repos = consenso[(consenso["nivel"] == "repo") & (consenso["tipo_projeto"] != "")]
+    return dict(zip(repos["repo"], repos["tipo_projeto"]))
 
 
 def elegiveis_sorteio(metricas: pd.DataFrame) -> pd.DataFrame:
@@ -240,8 +251,11 @@ def _ler_metricas(arquivo: pathlib.Path) -> pd.DataFrame:
                        dtype={c: "string" for c in COLUNAS_TEXTO}).astype({c: object for c in COLUNAS_TEXTO})
 
 
-def consolidar(dados: pathlib.Path, cfg: dict) -> pd.DataFrame:
+def consolidar(dados: pathlib.Path, cfg: dict, consenso: pathlib.Path | None = CONSENSO_PADRAO) -> pd.DataFrame:
     """Valida `dados/metricas.csv` + `dados/funil.csv` e grava o dataset final.
+
+    `consenso` é o consenso da amostra-ouro, fonte de `tipo_projeto`; se o arquivo não
+    existir (ou `None`), a coluna fica vazia.
 
     Regrava `dados/metricas.csv` com COLUNAS_FINAIS e grava `dados/elegiveis_sorteio.csv`.
     Levanta `DatasetInvalido` (sem gravar nada) se a validação encontrar problemas.
@@ -254,7 +268,8 @@ def consolidar(dados: pathlib.Path, cfg: dict) -> pd.DataFrame:
     if problemas:
         raise DatasetInvalido(problemas)
 
-    final = derivar_colunas(metricas)
+    tipos = tipos_do_consenso(consenso) if consenso is not None and pathlib.Path(consenso).exists() else {}
+    final = derivar_colunas(metricas, {"tipo_projeto": tipos})
     final[COLUNAS_INTEIRAS] = final[COLUNAS_INTEIRAS].apply(pd.to_numeric).astype("Int64")
     final.to_csv(dados / "metricas.csv", index=False)
     elegiveis_sorteio(final).to_csv(dados / "elegiveis_sorteio.csv", index=False)
@@ -267,11 +282,13 @@ def main(argv: list[str] | None = None) -> int:
                                      description="Valida e consolida o dataset final (sem chamar a API).")
     parser.add_argument("--config", default="config.yaml", help="arquivo de configuração (padrão: config.yaml)")
     parser.add_argument("--dados", default="data", help="pasta com metricas.csv e funil.csv (padrão: data)")
+    parser.add_argument("--consenso", default=str(CONSENSO_PADRAO),
+                        help=f"consenso da amostra-ouro, fonte de tipo_projeto (padrão: {CONSENSO_PADRAO})")
     args = parser.parse_args(argv)
 
     dados = pathlib.Path(args.dados)
     try:
-        final = consolidar(dados, carregar_config(args.config))
+        final = consolidar(dados, carregar_config(args.config), pathlib.Path(args.consenso))
     except FileNotFoundError as erro:
         print(f"erro: arquivo não encontrado: {erro.filename}. Rode antes `python -m pipeline`.",
               file=sys.stderr)

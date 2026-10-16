@@ -16,6 +16,7 @@ import pandas as pd
 import yaml
 
 from metricas.classificacao import classificar_repositorio
+from pipeline.etapa_entrega import coletar_cfr_entrega
 from pipeline.etapa_releases import coletar_releases_e_lead_time
 from pipeline.etapa_runs import coletar_runs_e_metricas
 from pipeline.etapa_variantes import MAX_COMPARES_PADRAO, coletar_variantes
@@ -38,6 +39,7 @@ COLUNAS = [
     "n_lead_negativos_pre", "teto_compare_pre",
     "n_tags", "deploy_freq_week_tag", "lead_time_b_days_tag", "compare_404_tag",
     "n_lead_negativos_tag", "teto_compare_tag", "commits_omitidos_tag", "erro_tags",
+    "cfr_entrega", "n_falhas_entrega", "n_censuradas_entrega", "rework_rate", "cfr_entrega_pre",
     "score_freq", "score_lead", "score_cfr", "score_rec", "dora_overall",
 ]
 COLUNAS_INTEIRAS = [
@@ -45,7 +47,8 @@ COLUNAS_INTEIRAS = [
     "n_censored", "n_falhas_iniciais", "n_lead_negativos", "compare_404",
     "n_releases_pre", "compare_404_pre", "n_lead_negativos_pre", "teto_compare_pre",
     "n_tags", "compare_404_tag", "n_lead_negativos_tag", "teto_compare_tag", "commits_omitidos_tag",
-    "erro_tags", "score_freq", "score_lead", "score_cfr", "score_rec",
+    "erro_tags", "n_falhas_entrega", "n_censuradas_entrega",
+    "score_freq", "score_lead", "score_cfr", "score_rec",
 ]
 
 ETAPA_PROCESSADOS = "processados"
@@ -103,6 +106,7 @@ def _processar(client, full_name: str, janela, max_compares: int | None = MAX_CO
     if ci["n_runs_validos"] < MIN_RUNS_VALIDOS:
         return None, ETAPA_RUNS
     variantes = coletar_variantes(client, meta, janela, max_compares)
+    entrega_b = coletar_cfr_entrega(client, meta, janela, max_compares)
 
     notas = classificar_repositorio(entrega["deploy_freq_week"], entrega["lead_time_a_days"],
                                     ci["cfr_ci"], ci["recovery_median_h"])
@@ -116,6 +120,7 @@ def _processar(client, full_name: str, janela, max_compares: int | None = MAX_CO
         **ci,
         "meses_no_teto": ";".join(ci["meses_no_teto"]),
         **variantes,
+        **entrega_b,
         **notas,
     }
     return linha, ""
