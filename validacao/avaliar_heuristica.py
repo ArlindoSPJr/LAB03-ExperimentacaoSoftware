@@ -20,7 +20,7 @@ from urllib.parse import unquote
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support
 
-from metricas.corretiva import HEURISTICA_VERSAO, eh_corretiva
+from metricas.corretiva import HEURISTICA_VERSAO, VERSOES
 
 
 def tags_do_compare(url_commits: str) -> tuple[str, str] | None:
@@ -37,21 +37,23 @@ def metricas(y_true: list[str], y_pred: list[str]) -> dict:
             "f1": round(float(f1), 3)}
 
 
-def avaliar(itens: pd.DataFrame, mensagens) -> pd.DataFrame:
+def avaliar(itens: pd.DataFrame, mensagens, versao: str = HEURISTICA_VERSAO) -> pd.DataFrame:
     """Uma linha por release: consenso, predição e se o compare existia.
 
     `itens` tem repo, tag, url_commits e corretiva (consenso); `mensagens(repo, base, head)`
-    devolve a lista de mensagens ou None (compare indisponível).
+    devolve a lista de mensagens ou None (compare indisponível). `versao` escolhe a regra
+    em `metricas.corretiva.VERSOES`.
     """
+    regra = VERSOES[versao]
     linhas = []
     for row in itens.itertuples(index=False):
         tags = tags_do_compare(row.url_commits)
         msgs = mensagens(row.repo, *tags) if tags else None
         anterior = tags[0] if tags else ""
-        pred = eh_corretiva(anterior, row.tag, msgs or [])
+        pred = regra(anterior, row.tag, msgs or [])
         linhas.append({"repo": row.repo, "tag": row.tag, "consenso": row.corretiva,
                        "predicao": "sim" if pred else "nao", "com_commits": msgs is not None,
-                       "versao": HEURISTICA_VERSAO})
+                       "versao": versao})
     return pd.DataFrame(linhas)
 
 
@@ -72,6 +74,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rotulos", default="rotulos", help="pasta com consenso.csv e A.csv")
     parser.add_argument("--cache", default="cache", help="diretório do cache (padrão: cache)")
     parser.add_argument("--saida", default="data/heuristica_avaliacao.csv")
+    parser.add_argument("--versao", default=HEURISTICA_VERSAO, choices=sorted(VERSOES),
+                        help=f"versão da heurística (padrão: a vigente, {HEURISTICA_VERSAO})")
     args = parser.parse_args(argv)
 
     from pipeline.cache import DiskCache
@@ -84,10 +88,10 @@ def main(argv: list[str] | None = None) -> int:
         commits = fetch_commits(client, repo, base, head)
         return None if commits is None else [c["message"] for c in commits]
 
-    resultado = avaliar(carregar_itens(pathlib.Path(args.rotulos)), mensagens)
+    resultado = avaliar(carregar_itens(pathlib.Path(args.rotulos)), mensagens, args.versao)
     resultado.to_csv(args.saida, index=False, encoding="utf-8", lineterminator="\n")
     m = metricas(resultado["consenso"].tolist(), resultado["predicao"].tolist())
-    print(f"heurística {HEURISTICA_VERSAO}: n={m['n']} precisão={m['precisao']} "
+    print(f"heurística {args.versao}: n={m['n']} precisão={m['precisao']} "
           f"recall={m['recall']} F1={m['f1']} (sem commits: {int((~resultado['com_commits']).sum())})")
     print(f"predições em {args.saida}")
     return 0
