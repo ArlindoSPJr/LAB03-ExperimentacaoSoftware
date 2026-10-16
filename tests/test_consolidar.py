@@ -401,3 +401,33 @@ def test_pipeline_com_dataset_invalido_devolve_dois(tmp_path, monkeypatch, capsy
     monkeypatch.setattr(pipeline_main, "executar", executar_falso(dataset(linha(n_runs_validos=10))))
     assert pipeline_main.main(["--config", str(escrever_config(tmp_path))]) == 2
     assert "n_runs_validos" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("campo, valor", [("cfr_entrega", 1.5), ("cfr_entrega_pre", -0.2), ("rework_rate", 2.0)])
+def test_cfr_de_entrega_e_rework_fora_de_zero_a_um_sao_problema(campo, valor):
+    problemas = problemas_de(dataset(linha(**{campo: valor})))
+    assert any(campo in p and "octo/hello" in p for p in problemas)
+
+
+def test_tipo_projeto_vem_do_consenso_e_fica_vazio_fora_da_amostra():
+    resultado = derivar_colunas(dataset(linha(), linha(repo="octo/world")),
+                                {"tipo_projeto": {"octo/hello": "ferramenta CLI"}})
+    assert resultado.loc[0, "tipo_projeto"] == "ferramenta CLI"
+    assert pd.isna(resultado.loc[1, "tipo_projeto"])
+
+
+def test_consolidar_le_tipo_projeto_do_arquivo_de_consenso(tmp_path):
+    gravar_saidas(tmp_path, dataset(linha(repo="a/a"), linha(repo="b/b")))
+    consenso = tmp_path / "consenso.csv"
+    pd.DataFrame([{"nivel": "repo", "repo": "a/a", "tag": "", "tipo_projeto": "outro"},
+                  {"nivel": "release", "repo": "a/a", "tag": "v1", "tipo_projeto": ""}]).to_csv(consenso, index=False)
+    final = consolidar(tmp_path, CFG, consenso)
+    assert final.loc[0, "tipo_projeto"] == "outro" and pd.isna(final.loc[1, "tipo_projeto"])
+    consolidar(tmp_path, CFG, consenso)  # idempotente com a coluna já presente
+    assert pd.read_csv(tmp_path / "metricas.csv").loc[0, "tipo_projeto"] == "outro"
+
+
+def test_consolidar_sem_arquivo_de_consenso_deixa_tipo_vazio(tmp_path):
+    gravar_saidas(tmp_path, dataset())
+    final = consolidar(tmp_path, CFG, tmp_path / "nao_existe.csv")
+    assert final["tipo_projeto"].isna().all()

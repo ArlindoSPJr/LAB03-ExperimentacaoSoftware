@@ -306,3 +306,19 @@ def test_repositorio_sem_erro_tem_erro_tags_zero(tmp_path):
     metricas, _ = executar(FakeClient({"o/valido": repo()}), config(), tmp_path)
     assert metricas.iloc[0]["erro_tags"] == 0
     assert metricas.iloc[0]["commits_omitidos_tag"] == 0
+
+
+COLUNAS_ENTREGA = ["cfr_entrega", "n_falhas_entrega", "n_censuradas_entrega", "rework_rate", "cfr_entrega_pre"]
+
+
+def test_colunas_do_cfr_de_entrega_depois_das_variantes():
+    inicio = COLUNAS.index("erro_tags") + 1
+    assert COLUNAS[inicio:inicio + len(COLUNAS_ENTREGA)] == COLUNAS_ENTREGA
+
+
+def test_linha_do_repositorio_valido_tem_cfr_de_entrega(tmp_path):
+    # releases mensais com commits "feat: x": nenhuma corretiva
+    metricas, _ = executar(FakeClient({"o/valido": repo()}), config(), tmp_path)
+    linha = metricas.iloc[0]
+    assert linha["cfr_entrega"] == 0 and linha["rework_rate"] == 0 and linha["cfr_entrega_pre"] == 0
+    assert (linha["n_falhas_entrega"], linha["n_censuradas_entrega"]) == (0, 0)
