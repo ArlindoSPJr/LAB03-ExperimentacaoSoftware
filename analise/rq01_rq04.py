@@ -2,7 +2,14 @@
 
 Le apenas `data/metricas.csv`. Sempre mediana e IQR (nunca media/desvio).
 """
-import pandas as pd
+import argparse
+import pathlib
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import pandas as pd  # noqa: E402
 
 from analise.estatistica import mediana_iqr
 
@@ -71,3 +78,65 @@ def censurados(df: pd.DataFrame) -> pd.DataFrame:
         "prop_repo_q3": prop_repo["q3"],
         "releases_censuradas_entrega": _soma(df, "n_censuradas_entrega"),
     }])
+
+
+ENTRADA_PADRAO = pathlib.Path("data/metricas.csv")
+SAIDA_PADRAO = pathlib.Path("analise/saida")
+
+
+def graficos(df: pd.DataFrame, saida: pathlib.Path) -> list[pathlib.Path]:
+    """Boxplot (mediana e IQR) por metrica em PNG; pula colunas ausentes ou vazias.
+
+    Escala log so quando todos os valores sao > 0 e max/min > 100.
+    """
+    saida = pathlib.Path(saida)
+    saida.mkdir(parents=True, exist_ok=True)
+    arquivos = []
+    for m in METRICAS:
+        if m["coluna"] not in df.columns:
+            continue
+        v = pd.to_numeric(df[m["coluna"]], errors="coerce").dropna()
+        if v.empty:
+            continue
+        fig, ax = plt.subplots(figsize=(4, 4))
+        ax.boxplot(v, showfliers=True)
+        if (v > 0).all() and v.max() / v.min() > 100:
+            ax.set_yscale("log")
+        ax.set_xticks([])
+        ax.set_ylabel(m["unidade"])
+        ax.set_title(f"{m['rq']} - {m['nome']} (n={len(v)})")
+        arq = saida / f"{m['rq'].lower()}_{m['nome']}.png"
+        fig.tight_layout()
+        fig.savefig(arq, dpi=150)
+        plt.close(fig)
+        arquivos.append(arq)
+    return arquivos
+
+
+def executar(entrada: pathlib.Path, saida: pathlib.Path) -> dict:
+    """Le o CSV, grava tabela, censurados e graficos em `saida`."""
+    df = pd.read_csv(entrada)
+    saida = pathlib.Path(saida)
+    saida.mkdir(parents=True, exist_ok=True)
+    tabela = resumir(df)
+    cens = censurados(df)
+    tabela.to_csv(saida / "tabela_rq01_rq04.csv", index=False)
+    cens.to_csv(saida / "censurados.csv", index=False)
+    return {"tabela": tabela, "censurados": cens, "graficos": graficos(df, saida)}
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="RQ01 a RQ04 (mediana e IQR)")
+    ap.add_argument("--entrada", type=pathlib.Path, default=ENTRADA_PADRAO)
+    ap.add_argument("--saida", type=pathlib.Path, default=SAIDA_PADRAO)
+    args = ap.parse_args(argv)
+    res = executar(args.entrada, args.saida)
+    sem = res["tabela"][res["tabela"]["n"] == 0]["coluna"].tolist()
+    if sem:
+        print(f"AVISO: sem dados para: {', '.join(sem)}")
+    print(res["tabela"].to_string(index=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
