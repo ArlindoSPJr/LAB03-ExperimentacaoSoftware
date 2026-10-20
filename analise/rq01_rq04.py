@@ -36,3 +36,38 @@ def resumir(df: pd.DataFrame) -> pd.DataFrame:
         })
     colunas = ["rq", "nome", "coluna", "unidade", "n", "n_ausentes", "mediana", "q1", "q3", "iqr"]
     return pd.DataFrame(linhas, columns=colunas).astype({"mediana": float, "q1": float, "q3": float, "iqr": float})
+
+
+def _soma(df: pd.DataFrame, coluna: str):
+    if coluna not in df.columns:
+        return None
+    return int(pd.to_numeric(df[coluna], errors="coerce").fillna(0).sum())
+
+
+def censurados(df: pd.DataFrame) -> pd.DataFrame:
+    """Censura de recuperacao (episodios) e de CFR (b) (releases dos ultimos 7 dias).
+
+    prop_global = episodios censurados / episodios (None sem episodios);
+    prop_repo_* = mediana e IQR de `prop_censurados` entre os repos.
+    """
+    episodios = _soma(df, "n_episodes") or 0
+    cens = _soma(df, "n_censored") or 0
+    prop_repo = mediana_iqr(
+        pd.to_numeric(df["prop_censurados"], errors="coerce").tolist()
+        if "prop_censurados" in df.columns else []
+    )
+    repos_com = (
+        int((pd.to_numeric(df["n_censored"], errors="coerce").fillna(0) > 0).sum())
+        if "n_censored" in df.columns else 0
+    )
+    return pd.DataFrame([{
+        "repos": len(df),
+        "episodios": episodios,
+        "episodios_censurados": cens,
+        "prop_global": cens / episodios if episodios else None,
+        "repos_com_censura": repos_com,
+        "prop_repo_mediana": prop_repo["mediana"],
+        "prop_repo_q1": prop_repo["q1"],
+        "prop_repo_q3": prop_repo["q3"],
+        "releases_censuradas_entrega": _soma(df, "n_censuradas_entrega"),
+    }])

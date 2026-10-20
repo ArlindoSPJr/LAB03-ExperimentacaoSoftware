@@ -30,3 +30,28 @@ def test_resumir_coluna_ausente_gera_linha_com_n_zero():
 
 def test_resumir_ordem_das_rqs():
     assert list(resumir(pd.DataFrame())["rq"]) == ["RQ01", "RQ02a", "RQ02b", "RQ03a", "RQ03b", "RQ04"]
+
+
+from analise.rq01_rq04 import censurados
+
+
+def test_censurados_soma_e_proporcao_a_mao():
+    df = pd.DataFrame({
+        "n_episodes": [5, 5], "n_censored": [1, 0], "prop_censurados": [0.2, 0.0],
+        "n_censuradas_entrega": [2, 3],
+    })
+    c = censurados(df).iloc[0]
+    assert c["repos"] == 2 and c["episodios"] == 10 and c["episodios_censurados"] == 1
+    assert c["prop_global"] == 0.1 and c["repos_com_censura"] == 1
+    assert c["prop_repo_mediana"] == 0.1 and c["releases_censuradas_entrega"] == 5
+
+
+def test_censurados_sem_episodios_nao_divide_por_zero():
+    df = pd.DataFrame({"n_episodes": [0], "n_censored": [0], "prop_censurados": [None]})
+    c = censurados(df).iloc[0]
+    assert pd.isna(c["prop_global"]) and pd.isna(c["prop_repo_mediana"])
+
+
+def test_censurados_sem_coluna_da_entrega():
+    df = pd.DataFrame({"n_episodes": [1], "n_censored": [1], "prop_censurados": [1.0]})
+    assert pd.isna(censurados(df).iloc[0]["releases_censuradas_entrega"])
