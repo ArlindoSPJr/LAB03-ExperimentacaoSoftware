@@ -1,0 +1,56 @@
+# Subamostra de 30 repositórios para a replicação cruzada (Entrega Final).
+# Uso: python -m pipeline --config config.subamostra30.yaml   (token lido de GITHUB_TOKEN)
+#
+# Os 30 repositórios foram sorteados do dataset final com semente fixa:
+#   pd.read_csv("data/metricas.csv").sample(n=30, random_state=42)["repo"]
+# Janela, teto de compares e cache são os mesmos de config.yaml (tests/test_subamostra30.py confere).
+# Com `repos:` presente, a busca é pulada; cada repositório passa de novo pelos critérios
+# de inclusão, então a amostra final pode ter menos de 30 linhas (descartes em data/funil.csv).
+
+window:
+  start: "2025-10-01"
+  end: "2026-09-30"
+
+sample_size: 30
+
+star_ranges:
+  - [1000, 2000]
+  - [2000, 5000]
+  - [5000, 20000]
+  - [20000, 500000]
+
+max_compares_variante: 100
+
+cache_dir: cache
+
+repos:
+  - zauberzeug/nicegui
+  - autobrr/qui
+  - piccolo-orm/piccolo
+  - HKUDS/DeepCode
+  - cvat-ai/cvat
+  - resend/react-email
+  - firecracker-microvm/firecracker
+  - K-Dense-AI/scientific-agent-skills
+  - wtfutil/wtf
+  - ChefKissInc/NootedRed
+  - webonyx/graphql-php
+  - jd-opensource/taro-ui
+  - NationalSecurityAgency/ghidra
+  - scalar/scalar
+  - Martian-Engineering/lossless-claw
+  - vadimdemedes/ink
+  - modelcontextprotocol/servers
+  - PerryTS/perry
+  - laurent22/joplin
+  - moby/moby
+  - traefik/traefik
+  - cockpit-project/cockpit
+  - mikefarah/yq
+  - JuliusBrussee/caveman
+  - kubernetes/kops
+  - mlocati/docker-php-extension-installer
+  - ventoy/Ventoy
+  - NodeBB/NodeBB
+  - cure53/DOMPurify
+  - harry0703/MoneyPrinterTurbo

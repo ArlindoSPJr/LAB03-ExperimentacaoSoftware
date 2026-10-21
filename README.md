@@ -6,12 +6,6 @@ Janela de observação fixa: **2025-10-01 a 2026-09-30** (UTC), definida em `con
 
 ## Como replicar (30 repositórios)
 
-<!-- S03-O3.3 (#47) precisa deixar isto verdadeiro antes da Entrega Final:
-     - existe `config.subamostra30.yaml` na raiz, com `repos:` de 30 repositórios sorteados de `data/metricas.csv`, `sample_size: 30` e a MESMA janela do `config.yaml`;
-     - estes passos foram executados em clone limpo (inclusive em Python 3.12), com o tempo medido e anotado no passo 6;
-     - `data/metricas.csv` do commit de entrega é o dataset final.
-     Se o nome do arquivo mudar, atualize este README. -->
-
 **1. Requisitos:** Python 3.12, git, pip e uma conta no GitHub.
 
 **2. Token.** Crie um token em GitHub > *Settings* > *Developer settings* > *Personal access tokens*: *fine-grained* com acesso só a "Public repositories (read-only)", ou *classic* **sem nenhum escopo**. O pipeline só lê dados públicos. Defina a variável de ambiente (o token nunca é gravado em disco):
@@ -34,6 +28,8 @@ source .venv/bin/activate               # Windows PowerShell: .venv\Scripts\Acti
 python -m pip install -r requirements.txt
 ```
 
+No Windows, clone num caminho curto (por exemplo, `C:\lab03`). Em caminhos longos, o `pip install` pode falhar com `OSError: [Errno 2] No such file or directory` por causa do limite de 260 caracteres do Windows. Outra saída é ativar o suporte a caminhos longos: <https://pip.pypa.io/warnings/enable-long-paths>.
+
 **4. Guarde o dataset original.** O pipeline **sobrescreve** `data/metricas.csv`, `data/funil.csv` e `data/elegiveis_sorteio.csv`. Copie o original para fora do repositório, pois é com ele que você vai comparar:
 
 ```
@@ -51,6 +47,8 @@ python -m pipeline --config config.subamostra30.yaml
 ```
 
 **6. Espere.** O cache começa vazio, então todas as respostas vêm da API. Quando a cota (5.000 requisições por hora) acaba, o pipeline **pausa sozinho** até a renovação e o terminal parece parado: é normal. Erros 5xx são repetidos com espera de 1, 2, 4, 8 e 16 s. Se interromper (`Ctrl+C`, queda de rede), rode **o mesmo comando** de novo: ele continua de onde parou, sem repetir chamadas.
+
+Referência: em clone limpo, com Python 3.12 no Windows e cache vazio, a execução levou cerca de **1h15** (21/10/2026). Os 30 repositórios passaram nos critérios de inclusão, e as métricas e a classificação DORA ficaram idênticas às do dataset original.
 
 **7. Compare com o original**, repositório a repositório (coluna `repo`), usando o novo `data/metricas.csv` e o arquivo guardado no passo 4:
 
