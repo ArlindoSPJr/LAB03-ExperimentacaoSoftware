@@ -13,8 +13,8 @@ from analise.rq06 import (
     main,
     montar_fatores,
     resumo_grupos,
-    testar,
-    testes,
+    comparar_grupos,
+    tabela_testes,
 )
 
 
@@ -26,7 +26,8 @@ def test_fatores_e_metricas():
 
 def test_linguagem_com_poucos_repos_vira_outras():
     s = pd.Series(["Go"] * 3 + ["Rust"] * 2 + ["C", None])
-    assert agrupar_linguagem(s, corte=3).tolist() == ["Go"] * 3 + ["Outras"] * 3 + [None]
+    r = agrupar_linguagem(s, corte=3)
+    assert r.iloc[:6].tolist() == ["Go"] * 3 + ["Outras"] * 3 and pd.isna(r.iloc[6])
 
 
 def test_montar_fatores_quartis_e_tipo():
@@ -44,7 +45,7 @@ def test_montar_fatores_quartis_e_tipo():
 
 def test_dois_grupos_usa_mann_whitney_e_cliffs_delta():
     # g1 todo abaixo de g2: U1 = 0 -> delta = 2*0/(3*3) - 1 = -1
-    r = testar(pd.Series([1, 2, 3, 4, 5, 6]), pd.Series(["a", "a", "a", "b", "b", "b"]))
+    r = comparar_grupos(pd.Series([1, 2, 3, 4, 5, 6]), pd.Series(["a", "a", "a", "b", "b", "b"]))
     assert r["teste"] == "mann-whitney" and r["efeito"] == "cliffs_delta"
     assert r["estatistica"] == 0 and r["valor_efeito"] == pytest.approx(-1.0)
     assert r["n"] == 6 and r["k"] == 2 and r["magnitude"] == "grande"
@@ -52,19 +53,19 @@ def test_dois_grupos_usa_mann_whitney_e_cliffs_delta():
 
 def test_tres_grupos_usa_kruskal_wallis_e_epsilon_quadrado():
     # somas de postos 6, 15, 24 -> H = 12/(9*10) * (36+225+576)/3 - 3*10 = 7,2; eps2 = 7,2/8 = 0,9
-    r = testar(pd.Series(range(1, 10)), pd.Series(["a"] * 3 + ["b"] * 3 + ["c"] * 3))
+    r = comparar_grupos(pd.Series(range(1, 10)), pd.Series(["a"] * 3 + ["b"] * 3 + ["c"] * 3))
     assert r["teste"] == "kruskal-wallis" and r["efeito"] == "epsilon_quadrado"
     assert r["estatistica"] == pytest.approx(7.2) and r["valor_efeito"] == pytest.approx(0.9)
     assert r["magnitude"] == "grande"
 
 
 def test_ignora_ausentes_e_grupo_unico_nao_testa():
-    r = testar(pd.Series([1.0, None, 3.0]), pd.Series(["a", "b", None]))
+    r = comparar_grupos(pd.Series([1.0, None, 3.0]), pd.Series(["a", "b", None]))
     assert r["n"] == 1 and r["teste"] is None and math.isnan(r["p"])
 
 
 def test_valores_todos_iguais_nao_quebra():
-    r = testar(pd.Series([1.0] * 6), pd.Series(["a", "b", "c"] * 2))
+    r = comparar_grupos(pd.Series([1.0] * 6), pd.Series(["a", "b", "c"] * 2))
     assert math.isnan(r["p"])
 
 
@@ -80,7 +81,7 @@ def _df(n=40):
 
 
 def test_testes_aplica_holm_em_toda_a_familia():
-    tab = testes(_df())
+    tab = tabela_testes(_df())
     assert len(tab) == len(FATORES) * len(METRICAS)
     validos = tab.dropna(subset=["p"])
     esperado = multipletests(validos["p"], method="holm")[1]
