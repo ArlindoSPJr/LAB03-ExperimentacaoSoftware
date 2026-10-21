@@ -2,7 +2,113 @@
 
 Pipeline que minera métricas DORA (frequência de deploy, lead time, change failure rate e tempo de recuperação) de repositórios open-source do GitHub que usam GitHub Actions.
 
-<!-- Seções Pré-requisitos, Token, Instalação e Comando único: S01-D3. -->
+## Pré-requisitos
+
+- **Python 3.12** (versão usada pelo CI do projeto). A suíte também foi executada com sucesso em Python 3.13.1, mas a versão de referência é a 3.12.
+- **git** e **pip**.
+- Uma **conta no GitHub** para gerar um token de acesso (próxima seção).
+- Conexão com a internet e disco livre para o cache. A coleta da amostra de 300 repositórios deste projeto gerou cerca de 77 mil arquivos em `cache/`; uma execução com 30 repositórios é bem menor.
+- Nenhuma biblioteca de acesso à API do GitHub é usada: a coleta usa `requests` direto (as demais dependências estão em `requirements.txt`).
+
+## Token
+
+O pipeline lê o token da variável de ambiente `GITHUB_TOKEN`. Sem ela, o comando termina na hora com `erro: defina a variável de ambiente GITHUB_TOKEN com um token do GitHub.` (código de saída `1`). O token **nunca** é lido de arquivo nem gravado em disco (o cache guarda só as respostas da API) e **nunca deve ser commitado**.
+
+**Como gerar:** em GitHub > *Settings* > *Developer settings* > *Personal access tokens*, crie um token. Qualquer um destes serve:
+
+- *Fine-grained token* com acesso a **"Public repositories (read-only)"** e nenhuma permissão adicional; ou
+- *Token (classic)* com **nenhum escopo marcado**.
+
+O pipeline só lê dados públicos (busca de repositórios, metadados, releases, tags, comparações de commits e execuções do Actions), então não precisa de escopo de escrita nem de acesso a repositórios privados. O token serve para elevar o limite de requisições: com ele a API REST permite **5.000 requisições por hora**; sem ele, apenas 60, o que inviabiliza a coleta.
+
+**Como definir** (vale só para o terminal aberto; use o seu token no lugar do texto de exemplo):
+
+```
+# Linux / macOS / Git Bash
+export GITHUB_TOKEN="<seu-token>"
+
+# Windows PowerShell
+$env:GITHUB_TOKEN = "<seu-token>"
+```
+
+## Instalação
+
+A partir da raiz do repositório, crie um ambiente virtual e instale as dependências, que estão com versão fixada em `requirements.txt`:
+
+```
+git clone https://github.com/ArlindoSPJr/LAB03-ExperimentacaoSoftware.git
+cd LAB03-ExperimentacaoSoftware
+
+python3.12 -m venv .venv
+source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+(No Windows, se `python3.12` não existir, use `py -3.12 -m venv .venv`.)
+
+Para conferir a instalação sem token e sem rede, rode a suíte de testes (veja a seção **Testes**):
+
+```
+python -m pytest
+```
+
+Em ambiente limpo (venv novo, `pip install -r requirements.txt`), a suíte passou com 509 testes em cerca de 2 minutos.
+
+## Comando único
+
+```
+python -m pipeline --config config.yaml
+```
+
+Esse comando executa tudo, do começo ao fim: busca de candidatos, filtro de GitHub Actions, metadados, releases, lead time, workflow runs (CFR e recuperação), variantes da RQ07 (release + pré-release e tag), critério de inclusão, classificação DORA e consolidação. Ao final grava `data/metricas.csv`, `data/funil.csv` e `data/elegiveis_sorteio.csv` e imprime o funil de seleção no terminal. Os arquivos têm o formato descrito na seção **Saídas** e no dicionário `data/DICIONARIO.md`.
+
+Códigos de saída: `0` sucesso; `1` variável `GITHUB_TOKEN` ausente; `2` consolidação reprovou o dataset (os problemas são listados). Um erro da API (por exemplo, falha persistente depois das tentativas) interrompe a execução com a mensagem do erro; basta executar de novo (veja *Retomada*).
+
+### Configuração (`config.yaml`)
+
+| Chave | O que faz |
+|---|---|
+| `window.start`, `window.end` | Janela de 12 meses (datas UTC). **`window.end` precisa estar no passado**; do contrário, o cache guarda respostas incompletas e a retomada as reaproveita |
+| `sample_size` | Quantos repositórios **válidos** coletar. O pipeline processa candidatos em ordem até atingir esse número |
+| `star_ranges` | Faixas de estrelas que fatiam a busca (a API de busca devolve no máximo 1.000 resultados por consulta) |
+| `max_compares_variante` | Teto de comparações de commits por repositório nas variantes da RQ07 (`null` desliga) |
+| `cache_dir` | Pasta do cache em disco (padrão `cache`) |
+| `repos` | Opcional: lista fixa de repositórios (`owner/repo`); quando presente, **pula a busca** |
+
+### Replicação com uma lista própria de repositórios (por exemplo, 30)
+
+1. Copie `config.yaml` e edite a cópia: descomente `repos` e liste os repositórios; ajuste `sample_size` para um valor **maior ou igual** ao tamanho da lista (o padrão do arquivo, 300, já serve):
+
+   ```yaml
+   sample_size: 30
+   repos:
+     - owner1/repo1
+     - owner2/repo2
+     # ...
+   ```
+
+2. Rode `python -m pipeline --config <sua-copia>.yaml`.
+
+Os repositórios da lista passam pelos mesmos critérios de inclusão (≥ 5 releases e ≥ 50 workflow runs válidos na janela); os que não passam são descartados e aparecem no funil, então a amostra final pode ter menos linhas que a lista. As datas da janela de `config.yaml` e todas as definições operacionais seguem o enunciado e não mudam.
+
+**Atenção:** a saída vai sempre para a pasta `data/` e **sobrescreve** `metricas.csv`, `funil.csv` e `elegiveis_sorteio.csv`. Rode em um clone separado, ou guarde uma cópia de `data/` antes, se quiser preservar o dataset anterior.
+
+### Tempo de execução e limite de requisições
+
+- O pipeline lê `X-RateLimit-Remaining` e `X-RateLimit-Reset` em cada resposta. Quando a cota acaba, **pausa sozinho** até a renovação (o terminal parece parado, mas está esperando). Para um limite secundário sem indicação de espera, aguarda 60 s.
+- Respostas 5xx e falhas de conexão têm novas tentativas com espera exponencial (1 s, 2 s, 4 s, 8 s, 16 s); depois da quinta tentativa o erro é levantado.
+- A busca de candidatos pagina pelo cabeçalho `Link` (`rel="next"`).
+- Ordem de grandeza (estimativa, não é garantia): a amostra de 300 repositórios deste projeto (1.328 candidatos processados) gerou cerca de 77 mil respostas; com a cota de 5.000 por hora, isso leva muitas horas. Uma lista de 30 repositórios custa algumas milhares de requisições, ou seja, de dezenas de minutos a poucas horas, conforme o número de releases e de runs de cada um.
+- O andamento aparece no terminal (uma linha por repositório: iniciando, descartado em qual etapa, ou válido).
+- A situação da cota pode ser consultada sem custo em `GET https://api.github.com/rate_limit`.
+
+### Cache e retomada
+
+Cada resposta 2xx da API é gravada em `cache/` (um arquivo JSON por requisição, escrita atômica). Se a execução for interrompida (`Ctrl+C`, queda de rede, erro persistente), **rode o mesmo comando de novo**: as requisições já feitas saem do cache, sem nova chamada, e a coleta continua de onde parou. Os CSVs de `data/` só são gravados ao final da coleta.
+
+- Não troque `window`, `star_ranges` nem `repos` no meio de uma coleta; para recomeçar com outra configuração, apague a pasta `cache/`.
+- `cache/` não é versionado. Respostas guardadas no cache não são atualizadas: para dados novos, apague a pasta.
+
 
 ## Janela de observação
 
