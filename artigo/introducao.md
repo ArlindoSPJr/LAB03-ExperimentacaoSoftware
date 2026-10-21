@@ -40,3 +40,40 @@
 - Estrelas medem atenção, não processo de entrega: muitos repositórios populares são estáveis e publicam pouco. Por isso esperamos efeito fraco da popularidade.
 - A idade pode puxar em dois sentidos: projetos antigos têm processos de release mais maduros e automatizados, mas também mais cautela com compatibilidade. Esperamos que os dois efeitos se compensem.
 - Na linguagem, esperamos diferenças pequenas ligadas ao ecossistema (por exemplo, ecossistemas com publicação automatizada em registros de pacotes publicando com mais frequência). As linguagens com poucos repositórios serão agrupadas em "Outras".
+
+## RQ01, RQ02 e RQ07 — hipóteses do integrante A
+
+> **Aviso de transparência (leia antes das hipóteses).** O enunciado pede hipóteses escritas **antes** de ver os dados. Isso vale para as hipóteses de RQ03, RQ05, RQ04 e RQ06 acima. **Não vale para RQ01 e RQ02**: o texto destas duas foi escrito **depois da coleta**, quando os resultados dessas questões já existiam. Elas se apoiam no conhecimento geral sobre as métricas DORA e sobre o ritmo de publicação de projetos open-source, e **não foram ajustadas para combinar com o que foi encontrado**. Mesmo assim, não devem ser lidas como previsões feitas antes dos dados, e a Discussão precisa dizer isso. A hipótese de RQ07 também foi escrita sem consultar nenhum resultado de RQ07, porque essa análise ainda não tinha sido feita quando o texto foi escrito. RQ08 (bônus) fica de fora deste rascunho, porque o grupo ainda não decidiu se vai fazê-la.
+
+### Seção: Introdução > Hipótese RQ01 (escrita depois da coleta)
+
+**Hipótese:** a maioria dos repositórios populares publica poucas versões por semana. Esperamos uma mediana de deploys por semana **bem abaixo de 1**, na faixa de uma publicação a cada um ou dois meses (algo entre 0,1 e 0,3 por semana). A distribuição deve ser muito assimétrica: uma maioria que publica de vez em quando e uma cauda pequena de projetos que publicam várias vezes por semana. Pelos cortes de referência do enunciado, esperamos que poucos repositórios cheguem à faixa Elite nessa métrica (7 ou mais por semana), e que a maior parte fique em Médio ou Baixo.
+
+**Por quê:**
+- Projetos de código aberto costumam agrupar mudanças em versões numeradas, que exigem decidir o número da versão, escrever notas e, muitas vezes, avisar quem depende do projeto. Isso desestimula publicar a cada mudança.
+- Bibliotecas e frameworks, que são comuns entre os projetos populares, têm um motivo extra para publicar menos: cada versão nova impõe custo a quem usa.
+- Uma minoria de projetos automatiza a publicação (por exemplo, uma versão a cada mudança aceita ou a cada noite). Esses projetos puxam a cauda para cima, mas não a mediana.
+- Usar a versão publicada como unidade de deploy é uma escolha conservadora: ela deixa de fora projetos que entregam continuamente sem marcar versões. Por isso, a métrica provavelmente subestima a frequência real desses projetos.
+
+### Seção: Introdução > Hipótese RQ02 (escrita depois da coleta)
+
+**Hipótese:** o tempo entre a mudança e a publicação será de **semanas**, e não de dias, na maioria dos repositórios. Esperamos que a variante por versão (que olha para o commit mais antigo de cada versão) dê valores **claramente maiores** que a variante por commit (que olha para todos os commits). Como ordem de grandeza, esperamos uma mediana da variante por versão entre duas semanas e dois meses, e uma mediana da variante por commit entre alguns dias e três semanas. Em termos de faixa DORA, esperamos que a maioria dos repositórios caia em Médio ou Alto, e poucos em Elite.
+
+**Por quê:**
+- A diferença entre as duas variantes é quase mecânica. Na variante por versão, cada versão é representada pelo seu commit **mais antigo**, que é o pior caso daquela versão. Na variante por commit, esse commit antigo é só um entre muitos, e a maioria dos commits entra perto da data da publicação. Por isso, a variante por versão tende a ser maior.
+- Quanto menos frequente a publicação, mais tempo o commit espera pela próxima versão. Então esperamos que lead time e frequência de deploy andem juntos: repositórios que publicam pouco terão lead time maior.
+- Esse tempo é espera pela próxima versão, não tempo de desenvolvimento. Num projeto que publica a cada dois meses, um commit pode ficar até dois meses parado depois de aceito, sem que ninguém esteja trabalhando nele.
+- Existe um limite para a nossa medida: usamos a data de autoria do commit. Mudanças que ficaram muito tempo em revisão antes de serem aceitas, ou commits reaplicados em outro ramo, podem aumentar o tempo medido. Esperamos uma cauda longa à direita.
+
+### Seção: Introdução > Hipótese RQ07 (escrita antes de qualquer resultado)
+
+**Hipótese:** a classificação DORA de um repositório **depende de forma relevante** da definição escolhida. Esperamos que entre **um quarto e metade** dos repositórios mude de categoria quando comparamos pelo menos um par de combinações de definições, e que a concordância ponderada entre as classificações seja apenas **moderada** (kappa entre 0,4 e 0,6), longe de uma concordância quase perfeita. Esperamos que a mudança de categoria seja quase sempre de **um degrau** (por exemplo, de Alto para Médio), e que trocas de três degraus (de Elite para Baixo) sejam raras.
+
+**Por quê:**
+- A escolha entre as duas variantes de lead time deve ser a que mais mexe na classificação. Como os valores da variante por versão tendem a ser bem maiores que os da variante por commit, trocar uma pela outra deve empurrar muitos repositórios para outra faixa nessa métrica.
+- A escolha entre as duas variantes de taxa de falha também pesa. Esperamos que a variante pela entrega dê taxas menores que a variante pelo CI (ver a hipótese de RQ03), o que melhora a nota de estabilidade de vários repositórios.
+- Contar pré-releases como deploy aumenta a frequência só nos repositórios que usam esse recurso, que são minoria. Esperamos pouca mudança vinda só dessa escolha.
+- Contar tags no lugar de versões publicadas deve mudar bastante a frequência nos projetos que criam uma tag por mudança ou por build, e pouco nos demais. Também esperamos que alguns repositórios tenham tags demais para serem medidos por completo.
+- Como a classificação geral usa a mediana das quatro notas (arredondada para baixo), uma mudança em uma só métrica nem sempre muda a categoria final. Isso deve **amortecer** o efeito, e é por isso que esperamos mudanças de um degrau, e não de vários.
+- Entre os três pares de combinações, esperamos a **maior concordância** entre a combinação com versões e pré-releases e a combinação com tags, porque as duas usam a mesma variante de lead time, e a menor entre a combinação de referência e a que mais se afasta dela em número de escolhas diferentes.
+- Consequência para o resto do artigo: se esta hipótese se confirmar, as conclusões sobre RQ01 a RQ06 valem **para a definição adotada**, e não de forma geral. Cabe dizer isso com clareza na Discussão.
