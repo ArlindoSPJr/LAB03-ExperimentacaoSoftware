@@ -75,23 +75,57 @@ Códigos de saída: `0` sucesso; `1` variável `GITHUB_TOKEN` ausente; `2` conso
 | `cache_dir` | Pasta do cache em disco (padrão `cache`) |
 | `repos` | Opcional: lista fixa de repositórios (`owner/repo`); quando presente, **pula a busca** |
 
-### Replicação com uma lista própria de repositórios (por exemplo, 30)
+### Replicação cruzada: subamostra de 30 repositórios
 
-1. Copie `config.yaml` e edite a cópia: descomente `repos` e liste os repositórios; ajuste `sample_size` para um valor **maior ou igual** ao tamanho da lista (o padrão do arquivo, 300, já serve):
+<!-- S03-O3.3 (#47) precisa deixar isto verdadeiro antes da Entrega Final:
+     - existe `config.subamostra30.yaml` na raiz, com `repos:` de 30 repositórios sorteados do dataset em `data/metricas.csv`, `sample_size: 30` e a MESMA janela do `config.yaml`;
+     - `requirements.txt` com versões fixadas (já está);
+     - os passos abaixo foram executados em clone limpo (inclusive em Python 3.12), com tempo medido e anotado na seção "Tempo de execução";
+     - `data/metricas.csv` do commit de entrega é o dataset final.
+     Se o nome do arquivo mudar, atualize esta seção. -->
 
-   ```yaml
-   sample_size: 30
-   repos:
-     - owner1/repo1
-     - owner2/repo2
-     # ...
+Esta seção é para quem vai **executar o nosso pipeline do zero** sobre 30 repositórios do dataset original, usando só este README. A lista dos 30 repositórios já está pronta em `config.subamostra30.yaml`; não é preciso escolher nem sortear nada.
+
+1. **Clone e instale** (seções *Pré-requisitos*, *Token* e *Instalação*, acima). Use um clone **novo**, sem a pasta `cache/`.
+2. **Guarde o dataset original.** O pipeline sobrescreve `data/metricas.csv`, `data/funil.csv` e `data/elegiveis_sorteio.csv`. Antes de rodar, copie o original para fora do repositório (é com ele que você vai comparar):
+
+   ```
+   # Linux / macOS / Git Bash
+   cp data/metricas.csv ../metricas_original.csv
+
+   # Windows PowerShell
+   Copy-Item data\metricas.csv ..\metricas_original.csv
    ```
 
-2. Rode `python -m pipeline --config <sua-copia>.yaml`.
+3. **Defina o token** (`GITHUB_TOKEN`, seção *Token*).
+4. **Rode o comando único** com a configuração da subamostra:
 
-Os repositórios da lista passam pelos mesmos critérios de inclusão (≥ 5 releases e ≥ 50 workflow runs válidos na janela); os que não passam são descartados e aparecem no funil, então a amostra final pode ter menos linhas que a lista. As datas da janela de `config.yaml` e todas as definições operacionais seguem o enunciado e não mudam.
+   ```
+   python -m pipeline --config config.subamostra30.yaml
+   ```
 
-**Atenção:** a saída vai sempre para a pasta `data/` e **sobrescreve** `metricas.csv`, `funil.csv` e `elegiveis_sorteio.csv`. Rode em um clone separado, ou guarde uma cópia de `data/` antes, se quiser preservar o dataset anterior.
+   Como o cache começa vazio, todas as respostas vêm da API: a cota de 5.000 requisições por hora pode se esgotar e o terminal parece parado enquanto o pipeline espera a renovação. Isso é normal (veja *Tempo de execução e limite de requisições*). Se interromper, rode o mesmo comando de novo: ele continua a partir do cache.
+5. **Confira a saída.** O resultado fica em `data/metricas.csv` (uma linha por repositório) e `data/funil.csv`. Como os repositórios passam de novo pelos critérios de inclusão (≥ 5 releases e ≥ 50 workflow runs válidos na janela), a amostra final pode ter menos de 30 linhas; os descartes aparecem no funil.
+6. **Compare com o original**, repositório a repositório (chave `repo`), usando as mesmas colunas nos dois arquivos:
+   - **diferença relativa** de cada métrica: `deploy_freq_week`, `lead_time_a_days`, `lead_time_b_days`, `cfr_ci`, `cfr_entrega` e `recovery_median_h`;
+   - **% de repositórios com a mesma classificação DORA** (`dora_overall`).
+
+   Pequenas diferenças são esperadas: os repositórios continuam recebendo commits e as datas de coleta diferem. O significado, a unidade e a fórmula de cada coluna estão em `data/DICIONARIO.md`.
+7. **Se algo falhar ou faltar na documentação**, anote o comando executado, a mensagem de erro completa, a versão do Python e o sistema operacional. Cada problema (falha de execução, documentação faltante ou divergência de resultado) deve virar uma Issue neste repositório com esses dados e os valores esperados e obtidos.
+
+#### Alternativa: usar a sua própria lista de repositórios
+
+Só se quiser testar com outros repositórios. Copie `config.yaml` e edite a cópia: descomente `repos` e liste os repositórios; ajuste `sample_size` para um valor **maior ou igual** ao tamanho da lista (o padrão do arquivo, 300, já serve):
+
+```yaml
+sample_size: 30
+repos:
+  - owner1/repo1
+  - owner2/repo2
+  # ...
+```
+
+Depois rode `python -m pipeline --config <sua-copia>.yaml`. Os repositórios da lista passam pelos mesmos critérios de inclusão e os descartes aparecem no funil. A janela de `config.yaml` e todas as definições operacionais seguem o enunciado e não devem ser alteradas. A saída também vai para `data/` e sobrescreve os arquivos (veja o passo 2 acima).
 
 ### Tempo de execução e limite de requisições
 
